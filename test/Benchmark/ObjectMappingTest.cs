@@ -435,6 +435,7 @@ namespace BenchmarkTest
         }
     }
 
+    [SimpleJob(RuntimeMoniker.NativeAot90 | RuntimeMoniker.Net90)]
     [MemoryDiagnoser, Orderer(summaryOrderPolicy: SummaryOrderPolicy.FastestToSlowest)]
     public class ObjectMappingTest
     {
