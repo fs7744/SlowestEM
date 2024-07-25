@@ -1,4 +1,4 @@
-﻿namespace SlowestEM.Core
+﻿namespace SlowestEM
 {
     public class Class1
     {
