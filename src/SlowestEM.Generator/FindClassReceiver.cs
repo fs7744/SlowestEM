@@ -10,6 +10,7 @@ namespace SlowestEM.Generator
 
         public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
         {
+            
             if (context.Node is ClassDeclarationSyntax classDeclaration)
             {
                 ClassDeclarationSyntaxes.Add(classDeclaration);

@@ -7,6 +7,7 @@ using System.Collections;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace BenchmarkTest
@@ -17,6 +18,81 @@ namespace BenchmarkTest
         public string Name { get; set; }
         public float? Weight { get; set; }
     }
+
+    public class Cat<T>
+    {
+        public int? Age { get; set; }
+        public T Name { get; set; }
+        public float? Weight { get; set; }
+    }
+
+    public class CatAccessors<T>
+    {
+        //[UnsafeAccessor(UnsafeAccessorKind.Constructor)]
+        //public static extern Cat<T> Ctor();
+
+        //[UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_Name")]
+        //public static extern void SetName(Cat<T> c, T n);
+
+        //[UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_Age")]
+        //public static extern void SetAge(Cat<T> c, int? n);
+
+        //[UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_Weight")]
+        //public static extern void SetWeight(Cat<T> c, float? n);
+
+        public static IEnumerable<Cat<T>> Read(IDataReader reader)
+        {
+            var s = new Action<Cat<T>>[reader.FieldCount];
+            for (int i = 0; i < s.Length; i++)
+            {
+                switch (reader.GetName(i).ToLower())
+                {
+                    case "name":
+                        {
+                            var j = i;
+                            s[i] = d => d.Name = (T)reader.GetValue(j);
+                            //s[i] = d => SetName(d, reader.GetString(j));
+                        }
+
+                        break;
+
+                    case "age":
+                        {
+                            var j = i;
+                            s[i] = d => d.Age = reader.GetInt32(j);
+                            // s[i] = d => SetAge(d, reader.GetInt32(j));
+                        }
+
+                        break;
+
+                    case "weight":
+                        {
+                            var j = i;
+                            s[i] = d => d.Weight = reader.GetFloat(j);
+                            //s[i] = d => SetWeight(d, reader.GetFloat(j));
+                        }
+
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+            while (reader.Read())
+            {
+                //var dog = DogAccessors.Ctor();
+                var dog = new Cat<T>();
+                foreach (var item in s)
+                {
+                    item(dog);
+                }
+                yield return dog;
+            }
+        }
+    }
+
+    public class CatString : Cat<string> { }
 
     public class DogAccessors
     {
@@ -416,7 +492,17 @@ namespace BenchmarkTest
 
         public override object GetValue(int ordinal)
         {
-            throw new NotImplementedException();
+            switch (ordinal)
+            {
+                case 0:
+                    return "XX";
+                case 1:
+                    return 2;
+                case 2:
+                    return 3.3f;
+                default:
+                    return null;
+            }
         }
 
         public override int GetValues(object[] values)
@@ -448,6 +534,11 @@ namespace BenchmarkTest
 
         public ObjectMappingTest()
         {
+            DBExtensions.GenericTypeDefinitionReaderCache[typeof(Cat<>)] = ts =>
+            {
+                var t = typeof(CatAccessors<>).MakeGenericType(ts);
+                return t.GetMethod("Read").CreateDelegate<Func<IDataReader, object>>();
+            };
             DBExtensions.ReaderCache[typeof(Dog)] = DogAccessors.Read;
             connection = new TestDbConnection();
             //var m = new Mock<IDbConnection>();
@@ -582,6 +673,111 @@ namespace BenchmarkTest
                 using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
                 {
                     dog = reader.ReadTo<Dog>().FirstOrDefault();
+                }
+            }
+            finally
+            {
+                connection.Close();
+            }
+        }
+
+        [Benchmark(Baseline = true), BenchmarkCategory("GenericType-1")]
+        public void GenericTypeSetClassFirst()
+        {
+            Cat<string> dog;
+            try
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = "select ";
+                using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
+                {
+                    if (reader.Read())
+                    {
+                        dog = new Cat<string>();
+                        dog.Name = reader.GetString(0);
+                        dog.Age = reader.GetInt32(1);
+                        dog.Weight = reader.GetFloat(2);
+                    }
+                }
+            }
+            finally
+            {
+                connection.Close();
+            }
+        }
+
+        [Benchmark, BenchmarkCategory("GenericType-1")]
+        public void GenericTypeDapperMappingFirst()
+        {
+            var dogs = connection.QueryFirst<Cat<string>>("select ");
+        }
+
+        [Benchmark, BenchmarkCategory("GenericType-1")]
+        public void GenericTypeUnsafeAccessorMappingFirst()
+        {
+            Cat<string> cat;
+            try
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = "select ";
+                using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
+                {
+                    cat = reader.ReadTo<Cat<string>>().FirstOrDefault();
+                }
+            }
+            finally
+            {
+                connection.Close();
+            }
+        }
+
+        [Benchmark(Baseline = true), BenchmarkCategory("GenericType-1000")]
+        public void GenericTypeSetClass()
+        {
+            List<Cat<string>> dogs = new List<Cat<string>>();
+            try
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = "select ";
+                using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
+                {
+                    while (reader.Read())
+                    {
+                        var dog = new Cat<string>();
+                        dogs.Add(dog);
+                        dog.Name = reader.GetString(0);
+                        dog.Age = reader.GetInt32(1);
+                        dog.Weight = reader.GetFloat(2);
+                    }
+                }
+            }
+            finally
+            {
+                connection.Close();
+            }
+        }
+
+        [Benchmark, BenchmarkCategory("GenericType-1000")]
+        public void GenericTypeDapperMapping()
+        {
+            var dogs = connection.Query<Cat<string>>("select ").ToList();
+        }
+
+        [Benchmark, BenchmarkCategory("GenericType-1000")]
+        public void GenericTypeUnsafeAccessorMapping()
+        {
+            List<Cat<string>> cat;
+            try
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = "select ";
+                using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
+                {
+                    cat = reader.ReadTo<Cat<string>>().ToList();
                 }
             }
             finally
