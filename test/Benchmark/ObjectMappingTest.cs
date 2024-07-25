@@ -2,6 +2,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Order;
 using Dapper;
+using SlowestEM;
 using System.Collections;
 using System.Data;
 using System.Data.Common;
@@ -447,6 +448,7 @@ namespace BenchmarkTest
 
         public ObjectMappingTest()
         {
+            DBExtensions.ReaderCache[typeof(Dog)] = DogAccessors.Read;
             connection = new TestDbConnection();
             //var m = new Mock<IDbConnection>();
             //connection = m.Object;
@@ -527,7 +529,7 @@ namespace BenchmarkTest
                 cmd.CommandText = "select ";
                 using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
                 {
-                    dogs = DogAccessors.Read(reader).ToList();
+                    dogs = reader.ReadTo<Dog>().ToList();
                 }
             }
             finally
@@ -579,7 +581,7 @@ namespace BenchmarkTest
                 cmd.CommandText = "select ";
                 using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
                 {
-                    dog = DogAccessors.Read(reader).FirstOrDefault();
+                    dog = reader.ReadTo<Dog>().FirstOrDefault();
                 }
             }
             finally
