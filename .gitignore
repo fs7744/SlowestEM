@@ -256,3 +256,8 @@ paket-files/
 coverage.hits
 coverage.json
 coverage/
+
+
+# source generated test
+
+test/UT/Generated/

@@ -1,4 +1,5 @@
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Order;
 using Dapper;
 using System.Collections;
@@ -40,7 +41,8 @@ namespace BenchmarkTest
                     case "name":
                         {
                             var j = i;
-                            s[i] = d => SetName(d, reader.GetString(j));
+                            s[i] = d => d.Name = reader.GetString(j);
+                            //s[i] = d => SetName(d, reader.GetString(j));
                         }
                         
                         break;
@@ -48,7 +50,8 @@ namespace BenchmarkTest
                     case "age":
                         {
                             var j = i;
-                            s[i] = d => SetAge(d, reader.GetInt32(j));
+                            s[i] = d => d.Age = reader.GetInt32(j);
+                           // s[i] = d => SetAge(d, reader.GetInt32(j));
                         }
                         
                         break;
@@ -56,7 +59,8 @@ namespace BenchmarkTest
                     case "weight":
                         {
                             var j = i;
-                            s[i] = d => SetWeight(d, reader.GetFloat(j));
+                            s[i] = d => d.Weight = reader.GetFloat(j);
+                            //s[i] = d => SetWeight(d, reader.GetFloat(j));
                         }
                         
                         break;
@@ -68,7 +72,8 @@ namespace BenchmarkTest
 
             while (reader.Read())
             {
-                var dog = DogAccessors.Ctor();
+                //var dog = DogAccessors.Ctor();
+                var dog = new Dog();
                 foreach (var item in s)
                 {
                     item(dog);
@@ -435,7 +440,7 @@ namespace BenchmarkTest
         }
     }
 
-    [MemoryDiagnoser, Orderer(summaryOrderPolicy: SummaryOrderPolicy.FastestToSlowest)]
+    [MemoryDiagnoser, Orderer(summaryOrderPolicy: SummaryOrderPolicy.FastestToSlowest), GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory), CategoriesColumn]
     public class ObjectMappingTest
     {
         private IDbConnection connection;
@@ -478,7 +483,7 @@ namespace BenchmarkTest
             //});
         }
 
-        [Benchmark]
+        [Benchmark(Baseline = true), BenchmarkCategory("1000")]
         public void SetClass()
         {
             var dogs = new List<Dog>();
@@ -505,13 +510,13 @@ namespace BenchmarkTest
             }
         }
 
-        [Benchmark]
+        [Benchmark, BenchmarkCategory("1000")]
         public void DapperMapping()
         {
             var dogs = connection.Query<Dog>("select ").ToList();
         }
 
-        [Benchmark]
+        [Benchmark, BenchmarkCategory("1000")]
         public void UnsafeAccessorMapping()
         {
             List<Dog> dogs;
@@ -523,6 +528,58 @@ namespace BenchmarkTest
                 using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
                 {
                     dogs = DogAccessors.Read(reader).ToList();
+                }
+            }
+            finally
+            {
+                connection.Close();
+            }
+        }
+
+        [Benchmark(Baseline = true), BenchmarkCategory("1")]
+        public void SetClassFirst()
+        {
+            Dog dog;
+            try
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = "select ";
+                using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
+                {
+                    if (reader.Read())
+                    {
+                        dog = new Dog();
+                        dog.Name = reader.GetString(0);
+                        dog.Age = reader.GetInt32(1);
+                        dog.Weight = reader.GetFloat(2);
+                    }
+                }
+            }
+            finally
+            {
+                connection.Close();
+            }
+        }
+
+        [Benchmark, BenchmarkCategory("1")]
+        public void DapperMappingFirst()
+        {
+            var dogs = connection.QueryFirst<Dog>("select ");
+        }
+
+        [Benchmark, BenchmarkCategory("1")]
+        public void UnsafeAccessorMappingFirst()
+        {
+            Dog dog;
+            try
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = "select ";
+                using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
+                {
+                    dog = DogAccessors.Read(reader).FirstOrDefault();
                 }
             }
             finally
