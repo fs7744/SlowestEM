@@ -108,53 +108,56 @@ namespace BenchmarkTest
         [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_Weight")]
         public static extern void SetWeight(Dog c, float? n);
 
-        //public static IEnumerable<Dog> Read(IDataReader reader)
-        //{
-        //    var s = new Action<Dog>[reader.FieldCount];
-        //    for (int i = 0; i < s.Length; i++)
-        //    {
-        //        var j = i;
-        //        switch (reader.GetName(i).ToLower())
-        //        {
-        //            case "name":
-        //                {
-        //                    var needConvert = typeof(string) != reader.GetFieldType(i);
-        //                    s[i] = d => d.Name = reader.ReadToString(j, needConvert);
-        //                }
-                        
-        //                break;
+        public static IEnumerable<Dog> Read(IDataReader reader)
+        {
+            var s = ClassReaderCache<BenchmarkTest.Dog>.Cache.GetOrAdd(new ReaderCacheKey(reader), (k) => 
+            {
+                var r = k.Reader;
+                var s = new Action<BenchmarkTest.Dog, IDataReader>[r.FieldCount];
+                for (int i = 0; i < s.Length; i++)
+                {
+                    var j = i;
+                    switch (r.GetName(j).ToLower())
+                    {
 
-        //            case "age":
-        //                {
-        //                    var needConvert = typeof(int) != reader.GetFieldType(i);
-        //                    s[i] = d => d.Age = reader.ReadToInt32Nullable(j, needConvert);
-        //                }
-        //                break;
-
-        //            case "weight":
-        //                {
-        //                    var needConvert = typeof(float) != reader.GetFieldType(i);
-        //                    s[i] = d => d.Weight = reader.ReadToFloatNullable(j, needConvert);
-        //                }
-                        
-        //                break;
-
-        //            default:
-        //                break;
-        //        }
-        //    }
-
-        //    while (reader.Read())
-        //    {
-        //        //var dog = DogAccessors.Ctor();
-        //        var dog = new Dog();
-        //        foreach (var item in s)
-        //        {
-        //            item?.Invoke(dog);
-        //        }
-        //        yield return dog;
-        //    }
-        //}
+                        case "age":
+                            {
+                                // int?
+                                var needConvert = typeof(int) != r.GetFieldType(i);
+                                s[i] = (d,rr) => d.Age = DBExtensions.ReadToInt32Nullable(rr, j, needConvert);
+                            }
+                            break;
+                        case "name":
+                            {
+                                // string
+                                var needConvert = typeof(string) != r.GetFieldType(i);
+                                s[i] = (d, rr) => d.Name = DBExtensions.ReadToString(rr, j, needConvert);
+                            }
+                            break;
+                        case "weight":
+                            {
+                                // float?
+                                var needConvert = typeof(float) != r.GetFieldType(i);
+                                s[i] = (d, rr) => d.Weight = DBExtensions.ReadToFloatNullable(rr, j, needConvert);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                return s;
+            });
+            
+            while (reader.Read())
+            {
+                var d = new BenchmarkTest.Dog();
+                foreach (var item in s)
+                {
+                    item?.Invoke(d, reader);
+                }
+                yield return d;
+            }
+        }
     }
 
     public class TestDbConnection : IDbConnection

@@ -320,4 +320,19 @@ namespace SlowestEM
             }
         }
     }
+
+    public class ReaderCacheKey
+    {
+        public ReaderCacheKey(IDataReader reader)
+        {
+            Reader = reader;
+        }
+
+        public IDataReader Reader { get; }
+    }
+
+    public static class ClassReaderCache<T>
+    {
+        public static ConcurrentDictionary<ReaderCacheKey, Action<T, IDataReader>[]> Cache = new ();
+    }
 }
