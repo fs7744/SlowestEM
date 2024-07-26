@@ -94,7 +94,7 @@ namespace SlowestEM.Generator
     {{
         {namedType.DeclaredAccessibility.ToDisplayString()} static IEnumerable<{fullName}> Read(IDataReader reader)
         {{
-            var s = new List<Action<{fullName}>>(reader.FieldCount);
+            var s = new List<Action<{fullName}, IDataReader>>(reader.FieldCount);
             for (int i = 0; i < reader.FieldCount; i++)
             {{
                 var j = i;
@@ -107,7 +107,7 @@ namespace SlowestEM.Generator
                     {{
                         // {i.Type.ToDisplayString()}
                         var needConvert = typeof({(i.Type.IsNullable() && i.Type is INamedTypeSymbol pnt ? pnt.TypeArguments[0].ToRealTypeDisplayString() : i.Type.ToRealTypeDisplayString())}) != reader.GetFieldType(i);
-                        s.Add(d => d.{i.Name} = DBExtensions.{supportReaderFieldType[i.Type.ToRealTypeDisplayString()]}(reader,j,needConvert)); 
+                        s.Add((d,r) => d.{i.Name} = DBExtensions.{supportReaderFieldType[i.Type.ToRealTypeDisplayString()]}(r,j,needConvert)); 
                     }}
                     break;";
                                          }))}
@@ -120,7 +120,7 @@ namespace SlowestEM.Generator
                 var d = new {fullName}();
                 foreach (var item in s)
                 {{
-                    item?.Invoke(d);
+                    item?.Invoke(d,reader);
                 }}
                 yield return d;
             }}
