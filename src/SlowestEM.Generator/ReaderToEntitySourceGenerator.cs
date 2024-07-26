@@ -83,7 +83,7 @@ namespace SlowestEM.Generator
 
         private void GenerateClassMapper(GeneratorExecutionContext context, StringBuilder cList, INamedTypeSymbol namedType)
         {
-            var ps = namedType.GetAllSettableProperties().Where(i => supportReaderFieldType.ContainsKey(i.Type.ToRealTypeDisplayString())).ToList();
+            var ps = namedType.GetAllSettableProperties().Where(i => supportReaderFieldType.ContainsKey(i.Type.ToRealTypeDisplayString()) || i.Type.IsEnum()).ToList();
             if(ps == null || ps.Count == 0) return;
             var fullName = namedType.ToDisplayString();
             var src = $@"
@@ -112,8 +112,13 @@ namespace SlowestEM.Generator
                     case ""{i.Name.ToLower()}"": 
                     {{
                         // {i.Type.ToDisplayString()}
-                        var needConvert = typeof({(i.Type.IsNullable() && i.Type is INamedTypeSymbol pnt ? pnt.TypeArguments[0].ToRealTypeDisplayString() : i.Type.ToRealTypeDisplayString())}) != reader.GetFieldType(i);
-                        s.Add((d,r) => d.{i.Name} = DBExtensions.{supportReaderFieldType[i.Type.ToRealTypeDisplayString()]}(r,j,needConvert)); 
+                        {(i.Type.IsEnum() 
+                        ? $@"
+                        s.Add((d,r) => d.{i.Name} = DBExtensions.{(i.Type.IsNullable() ? "ReadToEnumNullable" : "ReadToEnum")}<{i.Type.ToNoNullableDisplayString()}>(r,j));"
+                        : $@"
+                        var needConvert = typeof({(i.Type.ToNoNullableDisplayString())}) != reader.GetFieldType(i);
+                        s.Add((d,r) => d.{i.Name} = DBExtensions.{supportReaderFieldType[i.Type.ToRealTypeDisplayString()]}(r,j,needConvert));")}
+                         
                     }}
                     break;";
                                          }))}

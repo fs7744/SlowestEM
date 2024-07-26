@@ -46,5 +46,15 @@ namespace SlowestEM.Generator
         {
             return symbol.NullableAnnotation == NullableAnnotation.Annotated && !symbol.IsNullable() ? symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) : symbol.ToDisplayString();
         }
+
+        internal static bool IsEnum(this ITypeSymbol symbol)
+        {
+            return symbol.TypeKind == TypeKind.Enum || (symbol.IsNullable() && symbol is INamedTypeSymbol namedType  && namedType.TypeArguments[0].TypeKind == TypeKind.Enum);
+        }
+
+        internal static string ToNoNullableDisplayString(this ITypeSymbol symbol)
+        {
+            return symbol.IsNullable() && symbol is INamedTypeSymbol pnt ? pnt.TypeArguments[0].ToRealTypeDisplayString() : symbol.ToRealTypeDisplayString();
+        }
     }
 }

@@ -355,5 +355,17 @@ namespace SlowestEM
                 else return reader.GetDateTime(i);
             }
         }
+
+        public static T ReadToEnum<T>(this IDataReader reader, int i)
+        {
+            if (reader.IsDBNull(i)) return default;
+            else return (T)Enum.ToObject(typeof(T), reader.GetValue(i));
+        }
+
+        public static T? ReadToEnumNullable<T>(this IDataReader reader, int i) where T : struct
+        {
+            if (reader.IsDBNull(i)) return null;
+            else return (T)Enum.ToObject(typeof(T), reader.GetValue(i));
+        }
     }
 }
