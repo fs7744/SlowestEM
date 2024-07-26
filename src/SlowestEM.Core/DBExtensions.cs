@@ -326,9 +326,21 @@ namespace SlowestEM
         public ReaderCacheKey(IDataReader reader)
         {
             Reader = reader;
+            Key = "";
         }
 
         public IDataReader Reader { get; }
+        public string Key { get; }
+
+        public override string ToString()
+        {
+            return Key;
+        }
+
+        public override int GetHashCode()
+        {
+            return Key.GetHashCode();
+        }
     }
 
     public static class ClassReaderCache<T>
