@@ -260,4 +260,4 @@ coverage/
 
 # source generated test
 
-test/UT/Generated/
+test/**/Generated/

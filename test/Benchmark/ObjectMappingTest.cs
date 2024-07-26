@@ -108,56 +108,53 @@ namespace BenchmarkTest
         [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_Weight")]
         public static extern void SetWeight(Dog c, float? n);
 
-        public static IEnumerable<Dog> Read(IDataReader reader)
-        {
-            var s = new Action<Dog>[reader.FieldCount];
-            for (int i = 0; i < s.Length; i++)
-            {
-                switch (reader.GetName(i).ToLower())
-                {
-                    case "name":
-                        {
-                            var j = i;
-                            s[i] = d => d.Name = reader.GetString(j);
-                            //s[i] = d => SetName(d, reader.GetString(j));
-                        }
+        //public static IEnumerable<Dog> Read(IDataReader reader)
+        //{
+        //    var s = new Action<Dog>[reader.FieldCount];
+        //    for (int i = 0; i < s.Length; i++)
+        //    {
+        //        var j = i;
+        //        switch (reader.GetName(i).ToLower())
+        //        {
+        //            case "name":
+        //                {
+        //                    var needConvert = typeof(string) != reader.GetFieldType(i);
+        //                    s[i] = d => d.Name = reader.ReadToString(j, needConvert);
+        //                }
                         
-                        break;
+        //                break;
 
-                    case "age":
-                        {
-                            var j = i;
-                            s[i] = d => d.Age = reader.GetInt32(j);
-                           // s[i] = d => SetAge(d, reader.GetInt32(j));
-                        }
+        //            case "age":
+        //                {
+        //                    var needConvert = typeof(int) != reader.GetFieldType(i);
+        //                    s[i] = d => d.Age = reader.ReadToInt32Nullable(j, needConvert);
+        //                }
+        //                break;
+
+        //            case "weight":
+        //                {
+        //                    var needConvert = typeof(float) != reader.GetFieldType(i);
+        //                    s[i] = d => d.Weight = reader.ReadToFloatNullable(j, needConvert);
+        //                }
                         
-                        break;
+        //                break;
 
-                    case "weight":
-                        {
-                            var j = i;
-                            s[i] = d => d.Weight = reader.GetFloat(j);
-                            //s[i] = d => SetWeight(d, reader.GetFloat(j));
-                        }
-                        
-                        break;
+        //            default:
+        //                break;
+        //        }
+        //    }
 
-                    default:
-                        break;
-                }
-            }
-
-            while (reader.Read())
-            {
-                //var dog = DogAccessors.Ctor();
-                var dog = new Dog();
-                foreach (var item in s)
-                {
-                    item(dog);
-                }
-                yield return dog;
-            }
-        }
+        //    while (reader.Read())
+        //    {
+        //        //var dog = DogAccessors.Ctor();
+        //        var dog = new Dog();
+        //        foreach (var item in s)
+        //        {
+        //            item?.Invoke(dog);
+        //        }
+        //        yield return dog;
+        //    }
+        //}
     }
 
     public class TestDbConnection : IDbConnection
@@ -512,7 +509,7 @@ namespace BenchmarkTest
 
         public override bool IsDBNull(int ordinal)
         {
-            throw new NotImplementedException();
+            return false;
         }
 
         public override bool NextResult()
@@ -534,12 +531,13 @@ namespace BenchmarkTest
 
         public ObjectMappingTest()
         {
+            SlowestEM.Generator.EntitiesGenerator.Enable();
             DBExtensions.GenericTypeDefinitionReaderCache[typeof(Cat<>)] = ts =>
             {
                 var t = typeof(CatAccessors<>).MakeGenericType(ts);
                 return t.GetMethod("Read").CreateDelegate<Func<IDataReader, object>>();
             };
-            DBExtensions.ReaderCache[typeof(Dog)] = DogAccessors.Read;
+            //DBExtensions.ReaderCache[typeof(Dog)] = DogAccessors.Read;
             connection = new TestDbConnection();
             //var m = new Mock<IDbConnection>();
             //connection = m.Object;
@@ -610,7 +608,7 @@ namespace BenchmarkTest
         }
 
         [Benchmark, BenchmarkCategory("1000")]
-        public void UnsafeAccessorMapping()
+        public void SourceGeneratorMapping()
         {
             List<Dog> dogs;
             try
@@ -662,7 +660,7 @@ namespace BenchmarkTest
         }
 
         [Benchmark, BenchmarkCategory("1")]
-        public void UnsafeAccessorMappingFirst()
+        public void SourceGeneratorMappingFirst()
         {
             Dog dog;
             try
@@ -714,7 +712,7 @@ namespace BenchmarkTest
         }
 
         [Benchmark, BenchmarkCategory("GenericType-1")]
-        public void GenericTypeUnsafeAccessorMappingFirst()
+        public void GenericTypeSourceGeneratorMappingFirst()
         {
             Cat<string> cat;
             try
@@ -767,7 +765,7 @@ namespace BenchmarkTest
         }
 
         [Benchmark, BenchmarkCategory("GenericType-1000")]
-        public void GenericTypeUnsafeAccessorMapping()
+        public void GenericTypeSourceGeneratorMapping()
         {
             List<Cat<string>> cat;
             try

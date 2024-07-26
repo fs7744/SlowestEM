@@ -1,8 +1,8 @@
 ﻿using BenchmarkDotNet.Running;
 using BenchmarkTest;
 var a = new ObjectMappingTest();
-a.GenericTypeUnsafeAccessorMappingFirst();
+//a.GenericTypeSourceGeneratorMappingFirst();
 //a.SetClass();
 //a.DapperMapping();
-//a.UnsafeAccessorMapping();
+a.SourceGeneratorMapping();
 var summary = BenchmarkRunner.Run(typeof(Program).Assembly);
