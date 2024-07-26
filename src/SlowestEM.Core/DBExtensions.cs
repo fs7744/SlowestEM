@@ -68,6 +68,18 @@ namespace SlowestEM
             }
         }
 
+        public static ushort ReadToUInt16(this IDataReader reader, int i, bool needConvert)
+        {
+            if (reader.IsDBNull(i)) return default;
+            else return Convert.ToUInt16(reader.GetValue(i));
+        }
+
+        public static ushort? ReadToUInt16Nullable(this IDataReader reader, int i, bool needConvert)
+        {
+            if (reader.IsDBNull(i)) return null;
+            else return Convert.ToUInt16(reader.GetValue(i));
+        }
+
         public static int ReadToInt32(this IDataReader reader, int i, bool needConvert)
         {
             if (needConvert)
@@ -96,6 +108,18 @@ namespace SlowestEM
             }
         }
 
+        public static uint ReadToUInt32(this IDataReader reader, int i, bool needConvert)
+        {
+            if (reader.IsDBNull(i)) return default;
+            else return Convert.ToUInt32(reader.GetValue(i));
+        }
+
+        public static uint? ReadToUInt32Nullable(this IDataReader reader, int i, bool needConvert)
+        {
+            if (reader.IsDBNull(i)) return null;
+            else return Convert.ToUInt32(reader.GetValue(i));
+        }
+
         public static long ReadToInt64(this IDataReader reader, int i, bool needConvert)
         {
             if (needConvert)
@@ -122,6 +146,18 @@ namespace SlowestEM
                 if (reader.IsDBNull(i)) return null;
                 else return reader.GetInt64(i);
             }
+        }
+
+        public static ulong ReadToUInt64(this IDataReader reader, int i, bool needConvert)
+        {
+            if (reader.IsDBNull(i)) return default;
+            else return Convert.ToUInt64(reader.GetValue(i));
+        }
+
+        public static ulong? ReadToUInt64Nullable(this IDataReader reader, int i, bool needConvert)
+        {
+            if (reader.IsDBNull(i)) return null;
+            else return Convert.ToUInt64(reader.GetValue(i));
         }
 
         public static float ReadToFloat(this IDataReader reader, int i, bool needConvert)
