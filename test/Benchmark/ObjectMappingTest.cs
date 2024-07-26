@@ -682,109 +682,109 @@ namespace BenchmarkTest
             }
         }
 
-        [Benchmark(Baseline = true), BenchmarkCategory("GenericType-1")]
-        public void GenericTypeSetClassFirst()
-        {
-            Cat<string> dog;
-            try
-            {
-                connection.Open();
-                var cmd = connection.CreateCommand();
-                cmd.CommandText = "select ";
-                using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
-                {
-                    if (reader.Read())
-                    {
-                        dog = new Cat<string>();
-                        dog.Name = reader.GetString(0);
-                        dog.Age = reader.GetInt32(1);
-                        dog.Weight = reader.GetFloat(2);
-                    }
-                }
-            }
-            finally
-            {
-                connection.Close();
-            }
-        }
+        //[Benchmark(Baseline = true), BenchmarkCategory("GenericType-1")]
+        //public void GenericTypeSetClassFirst()
+        //{
+        //    Cat<string> dog;
+        //    try
+        //    {
+        //        connection.Open();
+        //        var cmd = connection.CreateCommand();
+        //        cmd.CommandText = "select ";
+        //        using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
+        //        {
+        //            if (reader.Read())
+        //            {
+        //                dog = new Cat<string>();
+        //                dog.Name = reader.GetString(0);
+        //                dog.Age = reader.GetInt32(1);
+        //                dog.Weight = reader.GetFloat(2);
+        //            }
+        //        }
+        //    }
+        //    finally
+        //    {
+        //        connection.Close();
+        //    }
+        //}
 
-        [Benchmark, BenchmarkCategory("GenericType-1")]
-        public void GenericTypeDapperMappingFirst()
-        {
-            var dogs = connection.QueryFirst<Cat<string>>("select ");
-        }
+        //[Benchmark, BenchmarkCategory("GenericType-1")]
+        //public void GenericTypeDapperMappingFirst()
+        //{
+        //    var dogs = connection.QueryFirst<Cat<string>>("select ");
+        //}
 
-        [Benchmark, BenchmarkCategory("GenericType-1")]
-        public void GenericTypeSourceGeneratorMappingFirst()
-        {
-            Cat<string> cat;
-            try
-            {
-                connection.Open();
-                var cmd = connection.CreateCommand();
-                cmd.CommandText = "select ";
-                using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
-                {
-                    cat = reader.ReadTo<Cat<string>>().FirstOrDefault();
-                }
-            }
-            finally
-            {
-                connection.Close();
-            }
-        }
+        //[Benchmark, BenchmarkCategory("GenericType-1")]
+        //public void GenericTypeSourceGeneratorMappingFirst()
+        //{
+        //    Cat<string> cat;
+        //    try
+        //    {
+        //        connection.Open();
+        //        var cmd = connection.CreateCommand();
+        //        cmd.CommandText = "select ";
+        //        using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
+        //        {
+        //            cat = reader.ReadTo<Cat<string>>().FirstOrDefault();
+        //        }
+        //    }
+        //    finally
+        //    {
+        //        connection.Close();
+        //    }
+        //}
 
-        [Benchmark(Baseline = true), BenchmarkCategory("GenericType-1000")]
-        public void GenericTypeSetClass()
-        {
-            List<Cat<string>> dogs = new List<Cat<string>>();
-            try
-            {
-                connection.Open();
-                var cmd = connection.CreateCommand();
-                cmd.CommandText = "select ";
-                using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
-                {
-                    while (reader.Read())
-                    {
-                        var dog = new Cat<string>();
-                        dogs.Add(dog);
-                        dog.Name = reader.GetString(0);
-                        dog.Age = reader.GetInt32(1);
-                        dog.Weight = reader.GetFloat(2);
-                    }
-                }
-            }
-            finally
-            {
-                connection.Close();
-            }
-        }
+        //[Benchmark(Baseline = true), BenchmarkCategory("GenericType-1000")]
+        //public void GenericTypeSetClass()
+        //{
+        //    List<Cat<string>> dogs = new List<Cat<string>>();
+        //    try
+        //    {
+        //        connection.Open();
+        //        var cmd = connection.CreateCommand();
+        //        cmd.CommandText = "select ";
+        //        using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
+        //        {
+        //            while (reader.Read())
+        //            {
+        //                var dog = new Cat<string>();
+        //                dogs.Add(dog);
+        //                dog.Name = reader.GetString(0);
+        //                dog.Age = reader.GetInt32(1);
+        //                dog.Weight = reader.GetFloat(2);
+        //            }
+        //        }
+        //    }
+        //    finally
+        //    {
+        //        connection.Close();
+        //    }
+        //}
 
-        [Benchmark, BenchmarkCategory("GenericType-1000")]
-        public void GenericTypeDapperMapping()
-        {
-            var dogs = connection.Query<Cat<string>>("select ").ToList();
-        }
+        //[Benchmark, BenchmarkCategory("GenericType-1000")]
+        //public void GenericTypeDapperMapping()
+        //{
+        //    var dogs = connection.Query<Cat<string>>("select ").ToList();
+        //}
 
-        [Benchmark, BenchmarkCategory("GenericType-1000")]
-        public void GenericTypeSourceGeneratorMapping()
-        {
-            List<Cat<string>> cat;
-            try
-            {
-                connection.Open();
-                var cmd = connection.CreateCommand();
-                cmd.CommandText = "select ";
-                using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
-                {
-                    cat = reader.ReadTo<Cat<string>>().ToList();
-                }
-            }
-            finally
-            {
-                connection.Close();
-            }
-        }
+        //[Benchmark, BenchmarkCategory("GenericType-1000")]
+        //public void GenericTypeSourceGeneratorMapping()
+        //{
+        //    List<Cat<string>> cat;
+        //    try
+        //    {
+        //        connection.Open();
+        //        var cmd = connection.CreateCommand();
+        //        cmd.CommandText = "select ";
+        //        using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
+        //        {
+        //            cat = reader.ReadTo<Cat<string>>().ToList();
+        //        }
+        //    }
+        //    finally
+        //    {
+        //        connection.Close();
+        //    }
+        //}
     }
 }
