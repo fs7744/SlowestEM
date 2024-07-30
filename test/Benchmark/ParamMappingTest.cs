@@ -76,5 +76,35 @@ namespace BenchmarkTest
         {
             connection.Execute("select * from Posts where Age = @Age  AND  Name = @Name AND  Weight = @Weight", dog);
         }
+
+        [Benchmark(Baseline = true), BenchmarkCategory("1000")]
+        public void SeParam1000()
+        {
+
+            for (int i = 0; i < 1000; i++)
+            {
+                SeParam();
+            }
+        }
+
+        [Benchmark, BenchmarkCategory("1000")]
+        public void SourceGeneratorSeParam1000()
+        {
+            for (int i = 0; i < 1000; i++)
+            {
+                SourceGeneratorSeParam();
+            }
+
+        }
+
+        [Benchmark, BenchmarkCategory("1000")]
+        public void DapperSeParam1000()
+        {
+
+            for (int i = 0; i < 1000; i++)
+            {
+                DapperSeParam();
+            }
+        }
     }
 }
