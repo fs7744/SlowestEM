@@ -20,6 +20,17 @@ namespace SlowestEM.Generator
             return result;
         }
 
+        internal static IEnumerable<IPropertySymbol> GetAllGettableProperties(this ITypeSymbol typeSymbol)
+        {
+            var result = typeSymbol
+                .GetMembers()
+                .Where(s => s.Kind == SymbolKind.Property).Cast<IPropertySymbol>()
+                .Where(p => p.GetMethod?.DeclaredAccessibility == Accessibility.Public)
+                .Union(typeSymbol.BaseType == null ? new IPropertySymbol[0] : typeSymbol.BaseType.GetAllGettableProperties());
+
+            return result;
+        }
+
         internal static string ToDisplayString(this Accessibility declaredAccessibility)
         {
             switch (declaredAccessibility)
