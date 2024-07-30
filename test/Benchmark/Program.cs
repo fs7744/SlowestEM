@@ -1,8 +1,12 @@
 ﻿using BenchmarkDotNet.Running;
 using BenchmarkTest;
-var a = new ObjectMappingTest();
+//var a = new ObjectMappingTest();
 //a.GenericTypeSourceGeneratorMappingFirst();
 //a.SetClass();
 //a.DapperMapping();
-a.SourceGeneratorMapping();
+//a.SourceGeneratorMapping();
+var b = new ParamMappingTest();
+b.DapperSeParam();
+b.SeParam();
+b.SourceGeneratorSeParam();
 var summary = BenchmarkRunner.Run(typeof(Program).Assembly);

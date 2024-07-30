@@ -158,6 +158,30 @@ namespace BenchmarkTest
                 yield return d;
             }
         }
+
+        public static void CreateParams(IDbCommand command, Dog o)
+        {
+            var p = command.CreateParameter();
+            p.ParameterName = "Age";
+            p.DbType = DbType.Int32;
+            p.Direction = ParameterDirection.Input;
+            p.Value = o.Age;
+            command.Parameters.Add(p);
+
+            p = command.CreateParameter();
+            p.ParameterName = "Name";
+            p.DbType = DbType.String;
+            p.Direction = ParameterDirection.Input;
+            p.Value = o.Name;
+            command.Parameters.Add(p);
+
+            p = command.CreateParameter();
+            p.ParameterName = "Weight";
+            p.DbType = DbType.Single;
+            p.Direction = ParameterDirection.Input;
+            p.Value = o.Weight;
+            command.Parameters.Add(p);
+        }
     }
 
     public class TestDbConnection : IDbConnection
@@ -204,8 +228,8 @@ namespace BenchmarkTest
 
     public class TestDataParameterCollection : IDataParameterCollection
     {
-        public object this[string parameterName] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public object? this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public object this[string parameterName] { get => throw new NotImplementedException(); set => Add(value); }
+        public object? this[int index] { get => throw new NotImplementedException(); set => Add(value); }
 
         public bool IsFixedSize => throw new NotImplementedException();
 
@@ -216,10 +240,11 @@ namespace BenchmarkTest
         public bool IsSynchronized => throw new NotImplementedException();
 
         public object SyncRoot => throw new NotImplementedException();
-
+        private List<object> list = new List<object>();
         public int Add(object? value)
         {
-            throw new NotImplementedException();
+            //list.Add(value);
+            return 0;
         }
 
         public void Clear()
@@ -272,6 +297,22 @@ namespace BenchmarkTest
         }
     }
 
+    public class TestDataParameter : IDbDataParameter
+    {
+        public byte Precision { get; set; }
+        public byte Scale { get; set; }
+        public int Size { get; set; }
+        public DbType DbType { get; set; }
+        public ParameterDirection Direction { get; set; }
+
+        public bool IsNullable { get; }
+
+        public string ParameterName { get; set; }
+        public string SourceColumn { get; set; }
+        public DataRowVersion SourceVersion { get; set; }
+        public object? Value { get; set; }
+    }
+
     public class TestDbCommand : IDbCommand
     {
         public string CommandText { get ; set ; }
@@ -290,7 +331,7 @@ namespace BenchmarkTest
 
         public IDbDataParameter CreateParameter()
         {
-            throw new NotImplementedException();
+           return new TestDataParameter();
         }
 
         public void Dispose()
@@ -299,7 +340,7 @@ namespace BenchmarkTest
 
         public int ExecuteNonQuery()
         {
-            throw new NotImplementedException();
+            return 0;
         }
 
         public IDataReader ExecuteReader()
