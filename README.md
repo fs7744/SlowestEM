@@ -4,6 +4,11 @@ Just try use SourceGenerator can be fastest db data mapping to object ?
 
 And it can't do when what code ?
 
+## no generate code when
+
+- Generic Type      (can not handle T if no use emit)
+- Anonymous Type    (SourceGenerator can not find anonymous type)
+
 ## generate code
 
 ``` csharp
