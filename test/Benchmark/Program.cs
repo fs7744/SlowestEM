@@ -2,12 +2,12 @@
 using BenchmarkTest;
 using Dapper;
 [module: DapperAot]
-var a = new ObjectMappingTest();
-a.SetClass();
-a.DapperMapping();
-a.SourceGeneratorMapping();
+//var a = new ObjectMappingTest();
+//a.SetClass();
+//a.DapperMapping();
+//a.SourceGeneratorMapping();
 var b = new ParamMappingTest();
-//b.DapperSeParam();
+b.DapperSeParam();
 b.SeParam();
 b.SourceGeneratorSeParam();
 var summary = BenchmarkRunner.Run(typeof(Program).Assembly);
