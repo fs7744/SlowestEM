@@ -1,10 +1,11 @@
 ﻿using BenchmarkDotNet.Running;
 using BenchmarkTest;
-//var a = new ObjectMappingTest();
-//a.GenericTypeSourceGeneratorMappingFirst();
-//a.SetClass();
-//a.DapperMapping();
-//a.SourceGeneratorMapping();
+using Dapper;
+[module: DapperAot]
+var a = new ObjectMappingTest();
+a.SetClass();
+a.DapperMapping();
+a.SourceGeneratorMapping();
 var b = new ParamMappingTest();
 //b.DapperSeParam();
 b.SeParam();

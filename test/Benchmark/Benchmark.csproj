@@ -7,11 +7,13 @@
     <Nullable>enable</Nullable>
 	  <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 	  <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
+	  <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Dapper.AOT</InterceptorsPreviewNamespaces>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
-	<PackageReference Include="Dapper" Version="2.1.35" />
+	  <PackageReference Include="Dapper" Version="2.1.35" />
+	  <PackageReference Include="Dapper.AOT" Version="1.0.31" />
 	<PackageReference Include="Moq" Version="4.20.70" />
   </ItemGroup>
 

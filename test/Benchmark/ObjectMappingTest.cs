@@ -184,15 +184,19 @@ namespace BenchmarkTest
         }
     }
 
-    public class TestDbConnection : IDbConnection
+    public class TestDbConnection : DbConnection
     {
-        public string ConnectionString { get; set; }
+        public override string ConnectionString { get; set; }
 
-        public int ConnectionTimeout => throw new NotImplementedException();
+        public override int ConnectionTimeout => throw new NotImplementedException();
 
-        public string Database => throw new NotImplementedException();
+        public override string Database => throw new NotImplementedException();
 
-        public ConnectionState State { get; set; }
+        public override ConnectionState State { get; }
+
+        public override string DataSource => throw new NotImplementedException();
+
+        public override string ServerVersion => throw new NotImplementedException();
 
         public IDbTransaction BeginTransaction()
         {
@@ -204,29 +208,39 @@ namespace BenchmarkTest
             throw new NotImplementedException();
         }
 
-        public void ChangeDatabase(string databaseName)
+        public override void ChangeDatabase(string databaseName)
         {
         }
 
-        public void Close()
+        public override void Close()
         {
         }
 
         public IDbCommand CreateCommand()
         {
-           return new TestDbCommand();
+            return new TestDbCommand();
         }
 
         public void Dispose()
         {
         }
 
-        public void Open()
+        public override void Open()
         {
+        }
+
+        protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override DbCommand CreateDbCommand()
+        {
+            return new TestDbCommand();
         }
     }
 
-    public class TestDataParameterCollection : IDataParameterCollection
+    public class TestDataParameterCollection : DbParameterCollection
     {
         public object this[string parameterName] { get => throw new NotImplementedException(); set => Add(value); }
         public object? this[int index] { get => throw new NotImplementedException(); set => Add(value); }
@@ -235,97 +249,139 @@ namespace BenchmarkTest
 
         public bool IsReadOnly => throw new NotImplementedException();
 
-        public int Count => throw new NotImplementedException();
-
         public bool IsSynchronized => throw new NotImplementedException();
 
-        public object SyncRoot => throw new NotImplementedException();
+        public override int Count => throw new NotImplementedException();
+
+        public override object SyncRoot => throw new NotImplementedException();
+
         private List<object> list = new List<object>();
-        public int Add(object? value)
+        
+
+        public override int Add(object value)
         {
-            //list.Add(value);
             return 0;
         }
 
-        public void Clear()
-        {
-        }
-
-        public bool Contains(string parameterName)
+        public override void AddRange(Array values)
         {
             throw new NotImplementedException();
         }
 
-        public bool Contains(object? value)
+        public override void Clear()
         {
             throw new NotImplementedException();
         }
 
-        public void CopyTo(Array array, int index)
-        {
-        }
-
-        public IEnumerator GetEnumerator()
+        public override bool Contains(object value)
         {
             throw new NotImplementedException();
         }
 
-        public int IndexOf(string parameterName)
+        public override bool Contains(string value)
         {
             throw new NotImplementedException();
         }
 
-        public int IndexOf(object? value)
+        public override void CopyTo(Array array, int index)
+        {
+        }
+
+        public override IEnumerator GetEnumerator()
         {
             throw new NotImplementedException();
         }
 
-        public void Insert(int index, object? value)
+        protected override DbParameter GetParameter(int index)
         {
+            throw new NotImplementedException();
         }
 
-        public void Remove(object? value)
+        protected override DbParameter GetParameter(string parameterName)
         {
+            throw new NotImplementedException();
         }
 
-        public void RemoveAt(string parameterName)
+        public override int IndexOf(object value)
         {
+            throw new NotImplementedException();
         }
 
-        public void RemoveAt(int index)
+        public override int IndexOf(string parameterName)
         {
+            throw new NotImplementedException();
+        }
+
+        public override void Insert(int index, object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Remove(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void RemoveAt(int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void RemoveAt(string parameterName)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void SetParameter(int index, DbParameter value)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void SetParameter(string parameterName, DbParameter value)
+        {
+            throw new NotImplementedException();
         }
     }
 
-    public class TestDataParameter : IDbDataParameter
+    public class TestDataParameter : DbParameter
     {
         public byte Precision { get; set; }
         public byte Scale { get; set; }
-        public int Size { get; set; }
-        public DbType DbType { get; set; }
-        public ParameterDirection Direction { get; set; }
-
-        public bool IsNullable { get; }
-
-        public string ParameterName { get; set; }
-        public string SourceColumn { get; set; }
+        public override int Size { get; set; }
+        public override DbType DbType { get; set; }
+        public override ParameterDirection Direction { get; set; }
+        public override bool IsNullable { get; set; }
+        public override string ParameterName { get; set; }
+        public override string SourceColumn { get; set; }
         public DataRowVersion SourceVersion { get; set; }
-        public object? Value { get; set; }
+        public override object? Value { get; set; }
+        public override bool SourceColumnNullMapping { get; set; }
+
+        public override void ResetDbType()
+        {
+        }
     }
 
-    public class TestDbCommand : IDbCommand
+    public class TestDbCommand : DbCommand
     {
-        public string CommandText { get ; set ; }
-        public int CommandTimeout { get; set; }
-        public CommandType CommandType { get; set; }
+        public override string CommandText { get; set; }
+        public override int CommandTimeout { get; set; }
+        public override CommandType CommandType { get; set; }
         public IDbConnection? Connection { get; set; }
 
         public IDataParameterCollection Parameters { get; } = new TestDataParameterCollection();
 
         public IDbTransaction? Transaction { get; set; }
-        public UpdateRowSource UpdatedRowSource { get; set; }
+        public override UpdateRowSource UpdatedRowSource { get; set; }
+        public override bool DesignTimeVisible { get; set; }
+        protected override DbConnection? DbConnection { get; set; }
 
-        public void Cancel()
+        protected override DbParameterCollection DbParameterCollection { get; } = new TestDataParameterCollection();
+
+        protected override DbTransaction? DbTransaction { get; set; }
+
+
+        public override void Cancel()
         {
         }
 
@@ -338,7 +394,7 @@ namespace BenchmarkTest
         {
         }
 
-        public int ExecuteNonQuery()
+        public override int ExecuteNonQuery()
         {
             return 0;
         }
@@ -353,13 +409,24 @@ namespace BenchmarkTest
             return new TestDbDataReader();
         }
 
-        public object? ExecuteScalar()
+
+        public override object? ExecuteScalar()
         {
             throw new NotImplementedException();
         }
 
-        public void Prepare()
+        public override void Prepare()
         {
+        }
+
+        protected override DbParameter CreateDbParameter()
+        {
+            return new TestDataParameter();
+        }
+
+        protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
+        {
+            return new TestDbDataReader();
         }
     }
 
@@ -395,7 +462,7 @@ namespace BenchmarkTest
 
         public override bool IsClosed => throw new NotImplementedException();
 
-        public override int RecordsAffected => throw new NotImplementedException();
+        public override int RecordsAffected => 0;
 
         public override bool GetBoolean(int ordinal)
         {
@@ -644,7 +711,7 @@ namespace BenchmarkTest
         [Benchmark, BenchmarkCategory("1000")]
         public void DapperMapping()
         {
-            var dogs = connection.Query<Dog>("select ").ToList();
+            var dogs = connection.Query<Dog>("select ").AsList();
         }
 
         [Benchmark, BenchmarkCategory("1000")]
