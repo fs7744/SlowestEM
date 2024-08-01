@@ -83,20 +83,20 @@ namespace SlowestEM.Generator
 
 ```
 
-BenchmarkDotNet v0.13.12, Windows 10 (10.0.19045.4651/22H2/2022Update)
-Intel Core i7-10700 CPU 2.90GHz, 1 CPU, 16 logical and 8 physical cores
-.NET SDK 9.0.100-preview.5.24307.3
-  [Host]     : .NET 8.0.6 (8.0.624.26715), X64 RyuJIT AVX2
-  DefaultJob : .NET 8.0.6 (8.0.624.26715), X64 RyuJIT AVX2
+BenchmarkDotNet v0.13.12, Windows 11 (10.0.22631.3880/23H2/2023Update/SunValley3)
+13th Gen Intel Core i9-13900KF, 1 CPU, 32 logical and 24 physical cores
+.NET SDK 9.0.100-preview.6.24328.19
+  [Host]     : .NET 8.0.7 (8.0.724.31311), X64 RyuJIT AVX2
+  DefaultJob : .NET 8.0.7 (8.0.724.31311), X64 RyuJIT AVX2
 
 
 ```
-| Method                      | Categories | Mean         | Error      | StdDev     | Ratio | RatioSD | Gen0    | Gen1   | Allocated | Alloc Ratio |
-|---------------------------- |----------- |-------------:|-----------:|-----------:|------:|--------:|--------:|-------:|----------:|------------:|
-| SetClassFirst               | 1          |     18.38 ns |   0.378 ns |   0.316 ns |  1.00 |    0.00 |  0.0181 |      - |     152 B |        1.00 |
-| SourceGeneratorMappingFirst | 1          |    183.31 ns |   3.525 ns |   3.462 ns |  9.98 |    0.14 |  0.0899 |      - |     752 B |        4.95 |
-| DapperMappingFirst          | 1          |  1,336.69 ns |   5.777 ns |   5.121 ns | 72.77 |    1.30 |  0.0343 |      - |     288 B |        1.89 |
-|                             |            |              |            |            |       |         |         |        |           |             |
-| SetClass                    | 1000       |  7,700.08 ns |  87.311 ns |  68.167 ns |  1.00 |    0.00 |  6.7749 | 1.1139 |   56712 B |        1.00 |
-| SourceGeneratorMapping      | 1000       | 23,428.85 ns | 262.698 ns | 232.875 ns |  3.04 |    0.03 |  6.8359 | 1.1292 |   57312 B |        1.01 |
-| DapperMapping               | 1000       | 48,880.92 ns | 682.693 ns | 533.002 ns |  6.35 |    0.06 | 13.4888 | 2.1362 |  113048 B |        1.99 |
+| Method                      | Categories | Mean        | Error     | StdDev    | Ratio | RatioSD | Gen0   | Gen1   | Allocated | Alloc Ratio |
+|---------------------------- |----------- |------------:|----------:|----------:|------:|--------:|-------:|-------:|----------:|------------:|
+| SetClassFirst               | 1          |    242.8 ns |   4.81 ns |   4.94 ns |  1.00 |    0.00 | 0.0148 | 0.0143 |     280 B |        1.00 |
+| SourceGeneratorMappingFirst | 1          |    299.1 ns |   5.95 ns |  11.47 ns |  1.21 |    0.05 | 0.0272 | 0.0267 |     512 B |        1.83 |
+| DapperMappingFirst          | 1          |    503.5 ns |   3.98 ns |   3.53 ns |  2.08 |    0.04 | 0.0219 |      - |     416 B |        1.49 |
+|                             |            |             |           |           |       |         |        |        |           |             |
+| SetClass                    | 1000       |  4,606.3 ns |  75.19 ns |  70.34 ns |  1.00 |    0.00 | 3.0136 | 0.9995 |   56840 B |        1.00 |
+| SourceGeneratorMapping      | 1000       | 12,312.9 ns | 213.70 ns | 199.89 ns |  2.67 |    0.07 | 3.0212 | 0.9918 |   57072 B |        1.00 |
+| DapperMapping               | 1000       | 30,458.6 ns | 156.51 ns | 130.69 ns |  6.62 |    0.11 | 5.5542 | 0.9155 |  105120 B |        1.85 |
