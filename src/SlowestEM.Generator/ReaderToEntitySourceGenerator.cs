@@ -124,11 +124,7 @@ namespace SlowestEM
 }}
             ";
             context.AddSource($"{fullName}_Accessors.g.cs", src);
-            cList.AppendLine($@"
-            if(t ==typeof({fullName})) 
-            {{ 
-                return {namedType.Name}_Accessors.Read(reader) as IEnumerable<T>;
-            }}");
+            cList.AppendLine($"DBExtensions.ReaderCache[typeof({fullName})] = {namedType.Name}_Accessors.Read;");
         }
 
         private string GenerateRead(List<IPropertySymbol> ps, string fullName)
@@ -216,6 +212,7 @@ using System;
 using System.Data;
 using SlowestEM;
 using System.Runtime.CompilerServices;
+using System.ComponentModel;
 
 namespace SlowestEM
 {{
@@ -665,20 +662,10 @@ namespace SlowestEM
             return AsValue((object?)value);
         }}
 
-        public static IEnumerable<T> ReadTo<T>(this IDataReader reader) where T : class
+        [ModuleInitializer]
+        internal static void Enable()
         {{
-            var t = typeof(T);
             {cList}
-            
-            if (DBExtensions.ReaderCache.TryGetValue(t, out var cache))
-            {{
-                return cache(reader) as IEnumerable<T>;
-            }}
-            else
-            {{
-                // todo: emit generate
-                throw new NotImplementedException();
-            }}
         }}
     }}
 }}
