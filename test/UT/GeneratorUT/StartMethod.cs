@@ -1,4 +1,6 @@
-﻿namespace UT.GeneratorUT
+﻿using SlowestEM.Attributes;
+
+namespace UT.GeneratorUT
 {
     public enum AEnum : int
     { 
@@ -8,6 +10,7 @@
     public class StartMethod
     {
         public string Str { get; set; }
+        [NotDbParameter]
         public string? Str2 { get; set; }
         public int? Int { get; set; }
         public Nullable<int> Int2 { get; set; }

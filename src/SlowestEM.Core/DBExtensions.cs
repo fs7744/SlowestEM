@@ -6,8 +6,6 @@ namespace SlowestEM
     public static class DBExtensions
     {
         public static ConcurrentDictionary<Type, Func<IDataReader, object>> ReaderCache = new ConcurrentDictionary<Type, Func<IDataReader, object>>();
-        public static ConcurrentDictionary<Type, Func<Type[],Func<IDataReader, object>>> GenericTypeDefinitionReaderCache = new ConcurrentDictionary<Type, Func<Type[], Func<IDataReader, object>>>();
-
 
         public static ConcurrentDictionary<Type, Action<IDbCommand, object>> ParamCache = new ();
 
@@ -16,12 +14,6 @@ namespace SlowestEM
             var t = typeof(T);
             if (ReaderCache.TryGetValue(t, out var cache))
             {
-                return cache(reader) as IEnumerable<T>;
-            }
-            else if (t.IsGenericType && GenericTypeDefinitionReaderCache.TryGetValue(t.GetGenericTypeDefinition(), out var makeCache))
-            {
-                cache = makeCache(t.GetGenericArguments());
-                ReaderCache.TryAdd(t, cache);
                 return cache(reader) as IEnumerable<T>;
             }
             else

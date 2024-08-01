@@ -67,5 +67,10 @@ namespace SlowestEM.Generator
         {
             return symbol.IsNullable() && symbol is INamedTypeSymbol pnt ? pnt.TypeArguments[0].ToRealTypeDisplayString() : symbol.ToRealTypeDisplayString();
         }
+
+        internal static bool HasAttribute(this IPropertySymbol symbol, string attribute)
+        {
+            return symbol.GetAttributes().Any(i => i.AttributeClass.Name == attribute);
+        }
     }
 }

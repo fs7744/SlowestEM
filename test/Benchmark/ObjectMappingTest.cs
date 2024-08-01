@@ -576,11 +576,7 @@ namespace BenchmarkTest
         public ObjectMappingTest()
         {
             SlowestEM.Generator.EntitiesGenerator.Enable();
-            DBExtensions.GenericTypeDefinitionReaderCache[typeof(Cat<>)] = ts =>
-            {
-                var t = typeof(CatAccessors<>).MakeGenericType(ts);
-                return t.GetMethod("Read").CreateDelegate<Func<IDataReader, object>>();
-            };
+            
             //DBExtensions.ReaderCache[typeof(Dog)] = DogAccessors.Read;
             connection = new TestDbConnection();
             //var m = new Mock<IDbConnection>();
