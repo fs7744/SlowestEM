@@ -6,7 +6,7 @@ using BenchmarkTest;
 //a.DapperMapping();
 //a.SourceGeneratorMapping();
 var b = new ParamMappingTest();
-b.DapperSeParam();
+//b.DapperSeParam();
 b.SeParam();
 b.SourceGeneratorSeParam();
 var summary = BenchmarkRunner.Run(typeof(Program).Assembly);

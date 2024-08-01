@@ -7,7 +7,10 @@ namespace SlowestEM
     {
         public static ConcurrentDictionary<Type, Func<IDataReader, object>> ReaderCache = new ConcurrentDictionary<Type, Func<IDataReader, object>>();
         public static ConcurrentDictionary<Type, Func<Type[],Func<IDataReader, object>>> GenericTypeDefinitionReaderCache = new ConcurrentDictionary<Type, Func<Type[], Func<IDataReader, object>>>();
-       
+
+
+        public static ConcurrentDictionary<Type, Action<IDbCommand, object>> ParamCache = new ();
+
         public static IEnumerable<T> ReadTo<T>(this IDataReader reader) where T : class
         {
             var t = typeof(T);
@@ -20,6 +23,20 @@ namespace SlowestEM
                 cache = makeCache(t.GetGenericArguments());
                 ReaderCache.TryAdd(t, cache);
                 return cache(reader) as IEnumerable<T>;
+            }
+            else
+            {
+                // todo: emit generate
+                throw new NotImplementedException();
+            }
+        }
+
+        public static void CreateParams<T>(this T data, IDbCommand cmd) where T : class
+        {
+            var t = typeof(T);
+            if (ParamCache.TryGetValue(t, out var cache))
+            {
+                cache(cmd, data);
             }
             else
             {

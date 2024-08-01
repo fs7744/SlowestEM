@@ -2,6 +2,7 @@
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Order;
 using Dapper;
+using SlowestEM;
 using System.Data;
 
 namespace BenchmarkTest
@@ -14,8 +15,8 @@ namespace BenchmarkTest
 
         public ParamMappingTest()
         {
+            SlowestEM.Generator.EntitiesGenerator.Enable();
             connection = new TestDbConnection();
-
         }
 
         [Benchmark(Baseline = true), BenchmarkCategory("1")]
@@ -30,7 +31,7 @@ namespace BenchmarkTest
                 p.ParameterName = "Age";
                 p.DbType = DbType.Int32;
                 p.Direction = ParameterDirection.Input;
-                p.Value = dog.Age;
+                p.Value = dog.Age.HasValue ? dog.Age.Value : null;
                 command.Parameters.Add(p);
 
                 p = command.CreateParameter();
@@ -44,7 +45,7 @@ namespace BenchmarkTest
                 p.ParameterName = "Weight";
                 p.DbType = DbType.Single;
                 p.Direction = ParameterDirection.Input;
-                p.Value = dog.Weight;
+                p.Value = dog.Weight.HasValue ? dog.Weight.Value : null;
                 command.Parameters.Add(p);
                 command.ExecuteNonQuery();
             }
@@ -61,7 +62,7 @@ namespace BenchmarkTest
             {
                 connection.Open();
                 var cmd = connection.CreateCommand();
-                DogAccessors.CreateParams(cmd, dog);
+                dog.CreateParams(cmd);
                 cmd.ExecuteNonQuery();
             }
             finally
