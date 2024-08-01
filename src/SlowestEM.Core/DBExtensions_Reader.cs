@@ -8,19 +8,19 @@ namespace SlowestEM
     {
         public static ConcurrentDictionary<Type, Func<IDataReader, object>> ReaderCache = new ConcurrentDictionary<Type, Func<IDataReader, object>>();
 
-        public static IEnumerable<T> ReadTo<T>(this IDataReader reader) where T : class
-        {
-            var t = typeof(T);
-            if (ReaderCache.TryGetValue(t, out var cache))
-            {
-                return cache(reader) as IEnumerable<T>;
-            }
-            else
-            {
-                // todo: emit generate
-                throw new NotImplementedException();
-            }
-        }
+        //public static IEnumerable<T> ReadTo<T>(this IDataReader reader) where T : class
+        //{
+        //    var t = typeof(T);
+        //    if (ReaderCache.TryGetValue(t, out var cache))
+        //    {
+        //        return cache(reader) as IEnumerable<T>;
+        //    }
+        //    else
+        //    {
+        //        // todo: emit generate
+        //        throw new NotImplementedException();
+        //    }
+        //}
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         //public static string ReadToString(this IDataReader reader, int i)
