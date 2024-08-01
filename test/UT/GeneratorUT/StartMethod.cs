@@ -15,6 +15,7 @@ namespace UT.GeneratorUT
         public int? Int { get; set; }
         public Nullable<int> Int2 { get; set; }
         public AEnum AEnum { get; set; }
+
         public AEnum? AEnum2 { get; set; }
 
         [Fact]

@@ -63,6 +63,20 @@ namespace SlowestEM.Generator
             return symbol.TypeKind == TypeKind.Enum || (symbol.IsNullable() && symbol is INamedTypeSymbol namedType  && namedType.TypeArguments[0].TypeKind == TypeKind.Enum);
         }
 
+        internal static INamedTypeSymbol GetEnumUnderlyingType(this ITypeSymbol symbol)
+        {
+            if (symbol is INamedTypeSymbol namedType)
+            {
+                if (symbol.TypeKind == TypeKind.Enum)
+                    return namedType.EnumUnderlyingType;
+                else if (symbol.IsNullable() && namedType.TypeArguments[0].TypeKind == TypeKind.Enum && namedType.TypeArguments[0] is INamedTypeSymbol tn)
+                {
+                    return tn.EnumUnderlyingType;
+                }
+            }
+            return null;
+        }
+
         internal static string ToNoNullableDisplayString(this ITypeSymbol symbol)
         {
             return symbol.IsNullable() && symbol is INamedTypeSymbol pnt ? pnt.TypeArguments[0].ToRealTypeDisplayString() : symbol.ToRealTypeDisplayString();
