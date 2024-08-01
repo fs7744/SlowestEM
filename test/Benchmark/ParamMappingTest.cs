@@ -62,7 +62,7 @@ namespace BenchmarkTest
             {
                 connection.Open();
                 var cmd = connection.CreateCommand();
-                dog.CreateParams(cmd);
+                cmd.CreateParams(dog);
                 cmd.ExecuteNonQuery();
             }
             finally
@@ -84,7 +84,36 @@ namespace BenchmarkTest
 
             for (int i = 0; i < 1000; i++)
             {
-                SeParam();
+                try
+                {
+                    connection.Open();
+                    var command = connection.CreateCommand();
+                    var p = command.CreateParameter();
+                    p.ParameterName = "Age";
+                    p.DbType = DbType.Int32;
+                    p.Direction = ParameterDirection.Input;
+                    p.Value = dog.Age.HasValue ? dog.Age.Value : null;
+                    command.Parameters.Add(p);
+
+                    p = command.CreateParameter();
+                    p.ParameterName = "Name";
+                    p.DbType = DbType.String;
+                    p.Direction = ParameterDirection.Input;
+                    p.Value = dog.Name;
+                    command.Parameters.Add(p);
+
+                    p = command.CreateParameter();
+                    p.ParameterName = "Weight";
+                    p.DbType = DbType.Single;
+                    p.Direction = ParameterDirection.Input;
+                    p.Value = dog.Weight.HasValue ? dog.Weight.Value : null;
+                    command.Parameters.Add(p);
+                    command.ExecuteNonQuery();
+                }
+                finally
+                {
+                    connection.Close();
+                }
             }
         }
 
@@ -93,7 +122,17 @@ namespace BenchmarkTest
         {
             for (int i = 0; i < 1000; i++)
             {
-                SourceGeneratorSeParam();
+                try
+                {
+                    connection.Open();
+                    var cmd = connection.CreateCommand();
+                    cmd.CreateParams(dog);
+                    cmd.ExecuteNonQuery();
+                }
+                finally
+                {
+                    connection.Close();
+                }
             }
 
         }
@@ -104,7 +143,7 @@ namespace BenchmarkTest
 
             for (int i = 0; i < 1000; i++)
             {
-                DapperSeParam();
+                connection.Execute("select * from Posts where Age = @Age  AND  Name = @Name AND  Weight = @Weight", dog);
             }
         }
     }

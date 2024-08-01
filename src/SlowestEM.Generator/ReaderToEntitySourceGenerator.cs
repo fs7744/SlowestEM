@@ -98,7 +98,7 @@ using System.Data;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 
-namespace SlowestEM.Generator
+namespace SlowestEM
 {{
     public static partial class {namedType.Name}_Accessors
     {{
@@ -141,17 +141,17 @@ namespace SlowestEM.Generator
             }}
         }}
 
-        {namedType.DeclaredAccessibility.ToDisplayString()} static void CreateParams(IDbCommand command, object oo)
+        {namedType.DeclaredAccessibility.ToDisplayString()} static void CreateParams({(namedType.DeclaredAccessibility == Accessibility.Public ? "this " : "")}IDbCommand command, {fullName} o)
         {{
-            var o = ({fullName})oo;
+            var ps = command.Parameters;
             IDbDataParameter p = null;
             {string.Join("", rs.Select(i => $@"
             p = command.CreateParameter();
             p.ParameterName = ""{i.Name}"";
             p.DbType = {(i.Type.IsEnum() ? supportParamFieldType[i.Type.GetEnumUnderlyingType()?.ToRealTypeDisplayString() ?? "string"] :  supportParamFieldType[i.Type.ToRealTypeDisplayString()])};
             p.Direction = ParameterDirection.Input;
-            p.Value = {(i.Type.IsNullable() ? $"o.{i.Name}.HasValue ? o.{i.Name}.Value : null" : $"o.{i.Name}")};
-            command.Parameters.Add(p);
+            p.Value = {(i.Type.IsNullable() ? $"DBExtensions.AsValue(o.{i.Name})" : $"o.{i.Name}")};
+            ps.Add(p);
 "))}
         }}
     }}
@@ -159,7 +159,7 @@ namespace SlowestEM.Generator
             ";
             context.AddSource($"{fullName}_Accessors.g.cs", src);
             cList.AppendLine($"DBExtensions.ReaderCache[typeof({fullName})] = {namedType.Name}_Accessors.Read;");
-            cList.AppendLine($"DBExtensions.ParamCache[typeof({fullName})] = {namedType.Name}_Accessors.CreateParams;");
+            //cList.AppendLine($"DBExtensions.ParamCache[typeof({fullName})] = {namedType.Name}_Accessors.CreateParams;");
         }
 
         private static void GenerateEnableFunc(GeneratorExecutionContext context, StringBuilder cList)
