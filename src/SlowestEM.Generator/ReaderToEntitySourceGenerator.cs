@@ -102,6 +102,8 @@ namespace SlowestEM
 {{
     public static partial class {namedType.Name}_Accessors
     {{
+        private static Dictionary<int, int[]> tokenCache = new ();
+
         {namedType.DeclaredAccessibility.ToDisplayString()} static IEnumerable<{fullName}> Read({(namedType.DeclaredAccessibility == Accessibility.Public ? "this " : "")}IDataReader reader)
         {{
             {GenerateRead(ps, fullName)}
@@ -174,24 +176,30 @@ namespace SlowestEM
                 
             }
             return $@"
-            var s = new List<int>(reader.FieldCount);
-            for (int i = 0; i < reader.FieldCount; i++)
+            var h = reader.GetColumnHash();
+            if (!tokenCache.TryGetValue(h, out var ss))
             {{
-                var name = reader.GetName(i).ToLower();
-                var type = reader.GetFieldType(i);
-                switch (name)
+                var s = new List<int>(reader.FieldCount);
+                for (int i = 0; i < reader.FieldCount; i++)
                 {{
-                    {f}
-                    default:
-                        break;
+                    var name = reader.GetName(i).ToLower();
+                    var type = reader.GetFieldType(i);
+                    switch (name)
+                    {{
+                        {f}
+                        default:
+                            break;
+                    }}
                 }}
+                ss = s.ToArray();
+                tokenCache[h] = ss;
             }}
             while (reader.Read())
             {{
                 var d = new {fullName}();
-                for (int j = 0; j < s.Count; j++)
+                for (int j = 0; j < ss.Length; j++)
                 {{
-                    switch (s[j])
+                    switch (ss[j])
                     {{
                         {s}
                         default:

@@ -577,7 +577,7 @@ namespace BenchmarkTest
         public override bool Read()
         {
             calls++;
-            return calls <= 1000;
+            return calls <= 10000;
         }
     }
 }

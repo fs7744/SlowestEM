@@ -7,6 +7,7 @@ namespace SlowestEM
     public static partial class DBExtensions
     {
         public static ConcurrentDictionary<Type, Func<IDataReader, object>> ReaderCache = new ConcurrentDictionary<Type, Func<IDataReader, object>>();
+        public static Dictionary<int, int[]> tokenCache = new ();
 
         public static IEnumerable<T> ReadTo<T>(this IDataReader reader) where T : class
         {
@@ -19,6 +20,21 @@ namespace SlowestEM
             {
                 // todo: emit generate
                 throw new NotImplementedException();
+            }
+        }
+
+        public static int GetColumnHash(this IDataReader reader)
+        {
+            unchecked
+            {
+                int max = reader.FieldCount;
+                int hash = max;
+                for (int i = 0; i < max; i++)
+                {
+                    object tmp = reader.GetName(i);
+                    hash = (-79 * ((hash * 31) + (tmp?.GetHashCode() ?? 0))) + (reader.GetFieldType(i)?.GetHashCode() ?? 0);
+                }
+                return hash;
             }
         }
 
