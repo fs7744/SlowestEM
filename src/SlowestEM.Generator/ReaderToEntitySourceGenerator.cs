@@ -116,7 +116,7 @@ namespace SlowestEM.Generator
                     case ""{i.Name.ToLower()}"": 
                     {{
                         {(i.Type.IsEnum() 
-                        ? $@" // {i.Type.ToDisplayString()}  
+                        ? $@" // {i.Type.ToDisplayString()}  {i.Type.GetEnumUnderlyingType()?.ToDisplayString()}  
                         var needConvert = typeof(string) == reader.GetFieldType(i);
                         s.Add((d,r) => d.{i.Name} = DBExtensions.{(i.Type.IsNullable() ? "ReadToEnumNullable" : "ReadToEnum")}<{i.Type.ToNoNullableDisplayString()}>(r,j,needConvert));"
                         : $@" // {i.Type.ToDisplayString()}
