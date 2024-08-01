@@ -118,7 +118,8 @@ namespace SlowestEM.Generator
                         // {i.Type.ToDisplayString()}
                         {(i.Type.IsEnum() 
                         ? $@"
-                        s.Add((d,r) => d.{i.Name} = DBExtensions.{(i.Type.IsNullable() ? "ReadToEnumNullable" : "ReadToEnum")}<{i.Type.ToNoNullableDisplayString()}>(r,j));"
+                        var needConvert = typeof(string) == reader.GetFieldType(i);
+                        s.Add((d,r) => d.{i.Name} = DBExtensions.{(i.Type.IsNullable() ? "ReadToEnumNullable" : "ReadToEnum")}<{i.Type.ToNoNullableDisplayString()}>(r,j,needConvert));"
                         : $@"
                         var needConvert = typeof({(i.Type.ToNoNullableDisplayString())}) != reader.GetFieldType(i);
                         s.Add((d,r) => d.{i.Name} = DBExtensions.{supportReaderFieldType[i.Type.ToRealTypeDisplayString()]}(r,j,needConvert));")}

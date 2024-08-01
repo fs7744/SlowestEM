@@ -365,15 +365,17 @@ namespace SlowestEM
             }
         }
 
-        public static T ReadToEnum<T>(this IDataReader reader, int i)
+        public static T ReadToEnum<T>(this IDataReader reader, int i, bool isString) where T : struct
         {
             if (reader.IsDBNull(i)) return default;
+            else if (isString) return Enum.Parse<T>(reader.GetString(i), true);
             else return (T)Enum.ToObject(typeof(T), reader.GetValue(i));
         }
 
-        public static T? ReadToEnumNullable<T>(this IDataReader reader, int i) where T : struct
+        public static T? ReadToEnumNullable<T>(this IDataReader reader, int i, bool isString) where T : struct
         {
             if (reader.IsDBNull(i)) return null;
+            else if (isString) return Enum.Parse<T>(reader.GetString(i), true);
             else return (T)Enum.ToObject(typeof(T), reader.GetValue(i));
         }
     }
