@@ -51,7 +51,7 @@ namespace BenchmarkTest
             //});
         }
 
-        [Benchmark(Baseline = true), BenchmarkCategory("10000")]
+        [Benchmark(Baseline = true), BenchmarkCategory("1000")]
         public void SetClass()
         {
             var dogs = new List<Dog>();
@@ -78,13 +78,13 @@ namespace BenchmarkTest
             }
         }
 
-        [Benchmark, BenchmarkCategory("10000")]
+        [Benchmark, BenchmarkCategory("1000")]
         public void DapperMapping()
         {
             var dogs = connection.Query<Dog>("select ").AsList();
         }
 
-        [Benchmark, BenchmarkCategory("10000")]
+        [Benchmark, BenchmarkCategory("1000")]
         public void SourceGeneratorMapping()
         {
             List<Dog> dogs;

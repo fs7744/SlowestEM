@@ -1,7 +1,7 @@
 ﻿using BenchmarkDotNet.Running;
 using BenchmarkTest;
 using Dapper;
-[module: DapperAot(true)]
+[module: DapperAot(false)]
 var a = new ObjectMappingTest();
 a.SetClass();
 a.DapperMapping();

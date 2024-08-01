@@ -20,63 +20,113 @@ using System.Data;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 
-namespace SlowestEM.Generator
+namespace SlowestEM
 {
-    public static partial class Dog_Accessors
+    public static partial class CatString_Accessors
     {
-        public static IEnumerable<BenchmarkTest.Dog> Read(IDataReader reader)
+        private static Dictionary<int, int[]> tokenCache = new ();
+
+        public static IEnumerable<BenchmarkTest.CatString> Read(this IDataReader reader)
         {
-            var s = new List<Action<BenchmarkTest.Dog, IDataReader>>(reader.FieldCount);
-            for (int i = 0; i < reader.FieldCount; i++)
+            
+            var h = reader.GetColumnHash();
+            if (!tokenCache.TryGetValue(h, out var ss))
             {
-                var j = i;
-                switch (reader.GetName(j).ToLower())
+                var s = new List<int>(reader.FieldCount);
+                for (int i = 0; i < reader.FieldCount; i++)
                 {
-                    
-                    case "age": 
+                    var name = reader.GetName(i).ToLower();
+                    var type = reader.GetFieldType(i);
+                    switch (name)
                     {
-                        // int?
                         
-                        var needConvert = typeof(int) != reader.GetFieldType(i);
-                        s.Add((d,r) => d.Age = DBExtensions.ReadToInt32Nullable(r,j,needConvert));
-                         
-                    }
-                    break;
-                    case "name": 
-                    {
-                        // string
-                        
-                        var needConvert = typeof(string) != reader.GetFieldType(i);
-                        s.Add((d,r) => d.Name = DBExtensions.ReadToString(r,j,needConvert));
-                         
-                    }
-                    break;
-                    case "weight": 
-                    {
-                        // float?
-                        
-                        var needConvert = typeof(float) != reader.GetFieldType(i);
-                        s.Add((d,r) => d.Weight = DBExtensions.ReadToFloatNullable(r,j,needConvert));
-                         
-                    }
-                    break;
-                    default:
+                    case "age":
+                        s.Add(type == typeof(int) ? 1 : 2); 
                         break;
+
+                    case "name":
+                        s.Add(type == typeof(string) ? 3 : 4); 
+                        break;
+
+                    case "weight":
+                        s.Add(type == typeof(float) ? 5 : 6); 
+                        break;
+
+                        default:
+                            break;
+                    }
                 }
+                ss = s.ToArray();
+                tokenCache[h] = ss;
             }
             while (reader.Read())
             {
-                var d = new BenchmarkTest.Dog();
-                foreach (var item in s)
+                var d = new BenchmarkTest.CatString();
+                for (int j = 0; j < ss.Length; j++)
                 {
-                    item?.Invoke(d,reader);
+                    switch (ss[j])
+                    {
+                        
+                    case 1:
+                        d.Age = EntitiesGenerator.ReadToInt32Nullable(reader,j);
+                        break;
+                    case 2:
+                        d.Age = EntitiesGenerator.ReadToInt32NullableConvert(reader,j);
+                        break;
+
+                    case 3:
+                        d.Name = EntitiesGenerator.ReadToString(reader,j);
+                        break;
+                    case 4:
+                        d.Name = EntitiesGenerator.ReadToStringConvert(reader,j);
+                        break;
+
+                    case 5:
+                        d.Weight = EntitiesGenerator.ReadToFloatNullable(reader,j);
+                        break;
+                    case 6:
+                        d.Weight = EntitiesGenerator.ReadToFloatNullableConvert(reader,j);
+                        break;
+
+                        default:
+                            break;
+                    }
                 }
                 yield return d;
             }
+
+        }
+
+        public static void CreateParams(this IDbCommand command, BenchmarkTest.CatString o)
+        {
+            var ps = command.Parameters;
+            IDbDataParameter p = null;
+            
+            p = command.CreateParameter();
+            p.ParameterName = "Age";
+            p.DbType = DbType.Int32;
+            p.Direction = ParameterDirection.Input;
+            p.Value = EntitiesGenerator.AsValue(o.Age);
+            ps.Add(p);
+
+            p = command.CreateParameter();
+            p.ParameterName = "Name";
+            p.DbType = DbType.String;
+            p.Direction = ParameterDirection.Input;
+            p.Value = o.Name;
+            ps.Add(p);
+
+            p = command.CreateParameter();
+            p.ParameterName = "Weight";
+            p.DbType = DbType.Single;
+            p.Direction = ParameterDirection.Input;
+            p.Value = EntitiesGenerator.AsValue(o.Weight);
+            ps.Add(p);
+
         }
     }
 }
-            
+               
 ```
 
 ## test
@@ -93,10 +143,10 @@ BenchmarkDotNet v0.13.12, Windows 11 (10.0.22631.3880/23H2/2023Update/SunValley3
 ```
 | Method                      | Categories | Mean        | Error     | StdDev    | Ratio | RatioSD | Gen0   | Gen1   | Allocated | Alloc Ratio |
 |---------------------------- |----------- |------------:|----------:|----------:|------:|--------:|-------:|-------:|----------:|------------:|
-| SetClassFirst               | 1          |    242.8 ns |   4.81 ns |   4.94 ns |  1.00 |    0.00 | 0.0148 | 0.0143 |     280 B |        1.00 |
-| SourceGeneratorMappingFirst | 1          |    299.1 ns |   5.95 ns |  11.47 ns |  1.21 |    0.05 | 0.0272 | 0.0267 |     512 B |        1.83 |
-| DapperMappingFirst          | 1          |    503.5 ns |   3.98 ns |   3.53 ns |  2.08 |    0.04 | 0.0219 |      - |     416 B |        1.49 |
+| SetClassFirst               | 1          |    260.7 ns |   5.11 ns |   6.64 ns |  1.00 |    0.00 | 0.0148 | 0.0143 |     280 B |        1.00 |
+| SourceGeneratorMappingFirst | 1          |    269.4 ns |   5.28 ns |   8.52 ns |  1.04 |    0.04 | 0.0176 | 0.0172 |     336 B |        1.20 |
+| DapperMappingFirst          | 1          |    505.7 ns |   6.01 ns |   5.62 ns |  1.94 |    0.06 | 0.0219 |      - |     416 B |        1.49 |
 |                             |            |             |           |           |       |         |        |        |           |             |
-| SetClass                    | 1000       |  4,606.3 ns |  75.19 ns |  70.34 ns |  1.00 |    0.00 | 3.0136 | 0.9995 |   56840 B |        1.00 |
-| SourceGeneratorMapping      | 1000       | 12,312.9 ns | 213.70 ns | 199.89 ns |  2.67 |    0.07 | 3.0212 | 0.9918 |   57072 B |        1.00 |
-| DapperMapping               | 1000       | 30,458.6 ns | 156.51 ns | 130.69 ns |  6.62 |    0.11 | 5.5542 | 0.9155 |  105120 B |        1.85 |
+| SetClass                    | 1000       |  4,572.1 ns |  85.22 ns |  79.72 ns |  1.00 |    0.00 | 3.0136 | 0.9995 |   56840 B |        1.00 |
+| SourceGeneratorMapping      | 1000       | 12,363.1 ns | 230.43 ns | 215.55 ns |  2.71 |    0.08 | 3.0212 | 0.9918 |   56896 B |        1.00 |
+| DapperMapping               | 1000       | 28,226.3 ns | 266.36 ns | 207.96 ns |  6.20 |    0.12 | 5.5847 | 0.9155 |  105120 B |        1.85 |
