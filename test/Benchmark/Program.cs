@@ -1,11 +1,11 @@
 ﻿using BenchmarkDotNet.Running;
 using BenchmarkTest;
 using Dapper;
-[module: DapperAot]
-//var a = new ObjectMappingTest();
-//a.SetClass();
-//a.DapperMapping();
-//a.SourceGeneratorMapping();
+[module: DapperAot(false)]
+var a = new ObjectMappingTest();
+a.SetClass();
+a.DapperMapping();
+a.SourceGeneratorMapping();
 var b = new ParamMappingTest();
 b.DapperSeParam();
 b.SeParam();

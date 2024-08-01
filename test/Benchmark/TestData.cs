@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 
 namespace BenchmarkTest
@@ -104,56 +105,6 @@ namespace BenchmarkTest
         [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_Weight")]
         public static extern void SetWeight(Dog c, float? n);
 
-        public static IEnumerable<Dog> Read(IDataReader reader)
-        {
-            var s = ClassReaderCache<BenchmarkTest.Dog>.Cache.GetOrAdd(new ReaderCacheKey(reader), (k) => 
-            {
-                var r = k.Reader;
-                var s = new Action<BenchmarkTest.Dog, IDataReader>[r.FieldCount];
-                for (int i = 0; i < s.Length; i++)
-                {
-                    var j = i;
-                    switch (r.GetName(j).ToLower())
-                    {
-
-                        case "age":
-                            {
-                                // int?
-                                var needConvert = typeof(int) != r.GetFieldType(i);
-                                s[i] = (d,rr) => d.Age = DBExtensions.ReadToInt32Nullable(rr, j, needConvert);
-                            }
-                            break;
-                        case "name":
-                            {
-                                // string
-                                var needConvert = typeof(string) != r.GetFieldType(i);
-                                s[i] = (d, rr) => d.Name = DBExtensions.ReadToString(rr, j, needConvert);
-                            }
-                            break;
-                        case "weight":
-                            {
-                                // float?
-                                var needConvert = typeof(float) != r.GetFieldType(i);
-                                s[i] = (d, rr) => d.Weight = DBExtensions.ReadToFloatNullable(rr, j, needConvert);
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                return s;
-            });
-            
-            while (reader.Read())
-            {
-                var d = new BenchmarkTest.Dog();
-                foreach (var item in s)
-                {
-                    item?.Invoke(d, reader);
-                }
-                yield return d;
-            }
-        }
 
         public static void CreateParams(IDbCommand command, Dog o)
         {
@@ -266,7 +217,6 @@ namespace BenchmarkTest
 
         public override void Clear()
         {
-            throw new NotImplementedException();
         }
 
         public override bool Contains(object value)

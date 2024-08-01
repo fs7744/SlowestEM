@@ -22,7 +22,6 @@ namespace UT.GeneratorUT
         public void CallNoError()
         {
             var s = new { A = "s" };
-            SlowestEM.Generator.EntitiesGenerator.Enable();
         }
     }
 }

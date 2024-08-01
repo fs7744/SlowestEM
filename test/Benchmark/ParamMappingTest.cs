@@ -15,7 +15,6 @@ namespace BenchmarkTest
 
         public ParamMappingTest()
         {
-            SlowestEM.Generator.EntitiesGenerator.Enable();
             connection = new TestDbConnection();
         }
 
