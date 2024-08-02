@@ -142,7 +142,7 @@ namespace SlowestEM
                     var x = ++i;
                     var y = ++i;
                     f.Append($@"
-                    case ""{p.Name.ToLower()}"":
+                    case {StringHashing.NormalizedHash(p.Name)}U:
                         s.Add(type == typeof(string) ? {x} : {y}); 
                         break;
 ");
@@ -160,7 +160,7 @@ namespace SlowestEM
                     var x = ++i;
                     var y = ++i;
                     f.Append($@"
-                    case ""{p.Name.ToLower()}"":
+                    case {StringHashing.NormalizedHash(p.Name)}U:
                         s.Add(type == typeof({p.Type.ToNoNullableDisplayString()}) ? {x} : {y}); 
                         break;
 ");
@@ -182,9 +182,9 @@ namespace SlowestEM
                 var s = new List<int>(reader.FieldCount);
                 for (int i = 0; i < reader.FieldCount; i++)
                 {{
-                    var name = reader.GetName(i).ToLower();
+                    var name = reader.GetName(i);
                     var type = reader.GetFieldType(i);
-                    switch (name)
+                    switch (EntitiesGenerator.NormalizedHash(name))
                     {{
                         {f}
                         default:
@@ -668,6 +668,21 @@ namespace SlowestEM
             if (typeof(T) == typeof(int)) return AsValue(Unsafe.As<T, int>(ref value));
             if (typeof(T) == typeof(int?)) return AsValue(Unsafe.As<T, int?>(ref value));
             return AsValue((object?)value);
+        }}
+
+        public static uint NormalizedHash(string value)
+        {{
+            uint hash = 0;
+            if (!string.IsNullOrEmpty(value))
+            {{   // borrowed from Roslyn's switch on string implementation
+                hash = 2166136261u;
+                foreach (char c in value)
+                {{
+                    if (c == '_' || char.IsWhiteSpace(c)) continue;
+                    hash = (char.ToLower(c) ^ hash) * 16777619;
+                }}
+            }}
+            return hash;
         }}
 
         [ModuleInitializer]
