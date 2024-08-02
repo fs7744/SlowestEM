@@ -102,7 +102,7 @@ namespace SlowestEM
 {{
     public static partial class {namedType.Name}_Accessors
     {{
-        private static Dictionary<int, uint[]> tokenCache = new ();
+        private static Dictionary<int, int[]> tokenCache = new ();
 
         {namedType.DeclaredAccessibility.ToDisplayString()} static IEnumerable<{fullName}> Read({(namedType.DeclaredAccessibility == Accessibility.Public ? "this " : "")}IDataReader reader)
         {{
@@ -143,14 +143,14 @@ namespace SlowestEM
                     var y = ++i;
                     f.Append($@"
                     case {StringHashing.NormalizedHash(p.Name)}U:
-                        s.Add(type == typeof(string) ? {x}U : {y}U); 
+                        s.Add(type == typeof(string) ? {x} : {y}); 
                         break;
 ");
                     s.Append($@"
-                    case {x}U:
+                    case {x}:
                         d.{p.Name} = EntitiesGenerator.ReadToEnumString{(p.Type.IsNullable() ? "Nullable" : "")}<{p.Type.ToNoNullableDisplayString()}>(reader,j);
                         break;
-                    case {y}U:
+                    case {y}:
                         d.{p.Name} = EntitiesGenerator.ReadToEnum{(p.Type.IsNullable() ? "Nullable" : "")}<{p.Type.ToNoNullableDisplayString()}>(reader,j);
                         break;
 ");
@@ -161,14 +161,14 @@ namespace SlowestEM
                     var y = ++i;
                     f.Append($@"
                     case {StringHashing.NormalizedHash(p.Name)}U:
-                        s.Add(type == typeof({p.Type.ToNoNullableDisplayString()}) ? {x}U : {y}U); 
+                        s.Add(type == typeof({p.Type.ToNoNullableDisplayString()}) ? {x} : {y}); 
                         break;
 ");
                     s.Append($@"
-                    case {x}U:
+                    case {x}:
                         d.{p.Name} = EntitiesGenerator.{supportReaderFieldType[p.Type.ToRealTypeDisplayString()]}(reader,j);
                         break;
-                    case {y}U:
+                    case {y}:
                         d.{p.Name} = EntitiesGenerator.{supportReaderFieldType[p.Type.ToRealTypeDisplayString()]}Convert(reader,j);
                         break;
 ");
@@ -179,7 +179,7 @@ namespace SlowestEM
             var h = reader.GetColumnHash();
             if (!tokenCache.TryGetValue(h, out var ss))
             {{
-                var s = new List<uint>(reader.FieldCount);
+                var s = new List<int>(reader.FieldCount);
                 for (int i = 0; i < reader.FieldCount; i++)
                 {{
                     var name = reader.GetName(i);
