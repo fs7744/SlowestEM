@@ -104,10 +104,7 @@ namespace SlowestEM
     {{
         private static Dictionary<int, int[]> tokenCache = new ();
 
-        {namedType.DeclaredAccessibility.ToDisplayString()} static IEnumerable<{fullName}> Read({(namedType.DeclaredAccessibility == Accessibility.Public ? "this " : "")}IDataReader reader)
-        {{
-            {GenerateRead(ps, fullName)}
-        }}
+        {GenerateRead(ps, fullName, namedType)}
 
         {namedType.DeclaredAccessibility.ToDisplayString()} static void CreateParams({(namedType.DeclaredAccessibility == Accessibility.Public ? "this " : "")}IDbCommand command, {fullName} o)
         {{
@@ -129,7 +126,7 @@ namespace SlowestEM
             cList.AppendLine($"DBExtensions.ReaderCache[typeof({fullName})] = {namedType.Name}_Accessors.Read;");
         }
 
-        private string GenerateRead(List<IPropertySymbol> ps, string fullName)
+        private string GenerateRead(List<IPropertySymbol> ps, string fullName, INamedTypeSymbol namedType)
         {
             var i = 0;
             var f = new StringBuilder();
@@ -175,7 +172,15 @@ namespace SlowestEM
                 }
                 
             }
+
             return $@"
+        {namedType.DeclaredAccessibility.ToDisplayString()} static void GenerateReadTokens({(namedType.DeclaredAccessibility == Accessibility.Public ? "this " : "")}IDataReader reader)
+        {{
+            
+        }}
+
+        {namedType.DeclaredAccessibility.ToDisplayString()} static IEnumerable<{fullName}> Read({(namedType.DeclaredAccessibility == Accessibility.Public ? "this " : "")}IDataReader reader)
+        {{
             var h = reader.GetColumnHash();
             if (!tokenCache.TryGetValue(h, out var ss))
             {{
@@ -208,6 +213,7 @@ namespace SlowestEM
                 }}
                 yield return d;
             }}
+        }}
 "; 
         }
 

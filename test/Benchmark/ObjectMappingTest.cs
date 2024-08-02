@@ -14,7 +14,7 @@ namespace BenchmarkTest
 
         public ObjectMappingTest()
         {
-            //DBExtensions.ReaderCache[typeof(Dog)] = DogAccessors.Read;
+            DBExtensions.ReaderCache[typeof(Dog)] = DogAccessors.Read;
             connection = new TestDbConnection();
             //var m = new Mock<IDbConnection>();
             //connection = m.Object;
@@ -104,57 +104,57 @@ namespace BenchmarkTest
             }
         }
 
-        [Benchmark(Baseline = true), BenchmarkCategory("1")]
-        public void SetClassFirst()
-        {
-            Dog dog;
-            try
-            {
-                connection.Open();
-                var cmd = connection.CreateCommand();
-                cmd.CommandText = "select ";
-                using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
-                {
-                    if (reader.Read())
-                    {
-                        dog = new Dog();
-                        dog.Name = reader.GetString(0);
-                        dog.Age = reader.GetInt32(1);
-                        dog.Weight = reader.GetFloat(2);
-                    }
-                }
-            }
-            finally
-            {
-                connection.Close();
-            }
-        }
+        //[Benchmark(Baseline = true), BenchmarkCategory("1")]
+        //public void SetClassFirst()
+        //{
+        //    Dog dog;
+        //    try
+        //    {
+        //        connection.Open();
+        //        var cmd = connection.CreateCommand();
+        //        cmd.CommandText = "select ";
+        //        using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
+        //        {
+        //            if (reader.Read())
+        //            {
+        //                dog = new Dog();
+        //                dog.Name = reader.GetString(0);
+        //                dog.Age = reader.GetInt32(1);
+        //                dog.Weight = reader.GetFloat(2);
+        //            }
+        //        }
+        //    }
+        //    finally
+        //    {
+        //        connection.Close();
+        //    }
+        //}
 
-        [Benchmark, BenchmarkCategory("1")]
-        public void DapperMappingFirst()
-        {
-            var dogs = connection.QueryFirst<Dog>("select ");
-        }
+        //[Benchmark, BenchmarkCategory("1")]
+        //public void DapperMappingFirst()
+        //{
+        //    var dogs = connection.QueryFirst<Dog>("select ");
+        //}
 
-        [Benchmark, BenchmarkCategory("1")]
-        public void SourceGeneratorMappingFirst()
-        {
-            Dog dog;
-            try
-            {
-                connection.Open();
-                var cmd = connection.CreateCommand();
-                cmd.CommandText = "select ";
-                using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
-                {
-                    dog = reader.ReadTo<Dog>().FirstOrDefault();
-                }
-            }
-            finally
-            {
-                connection.Close();
-            }
-        }
+        //[Benchmark, BenchmarkCategory("1")]
+        //public void SourceGeneratorMappingFirst()
+        //{
+        //    Dog dog;
+        //    try
+        //    {
+        //        connection.Open();
+        //        var cmd = connection.CreateCommand();
+        //        cmd.CommandText = "select ";
+        //        using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
+        //        {
+        //            dog = reader.ReadTo<Dog>().FirstOrDefault();
+        //        }
+        //    }
+        //    finally
+        //    {
+        //        connection.Close();
+        //    }
+        //}
 
         //[Benchmark(Baseline = true), BenchmarkCategory("GenericType-1")]
         //public void GenericTypeSetClassFirst()

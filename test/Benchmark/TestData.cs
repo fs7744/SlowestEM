@@ -1,3 +1,4 @@
+using Dapper;
 using SlowestEM;
 using System.Collections;
 using System.Data;
@@ -6,6 +7,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BenchmarkTest
 {
@@ -91,21 +94,99 @@ namespace BenchmarkTest
 
     public class CatString : Cat<string> { }
 
-    public class DogAccessors
+    public static class DogAccessors
     {
-        [UnsafeAccessor(UnsafeAccessorKind.Constructor)]
-        public static extern Dog Ctor();
 
-        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_Name")]
-        public static extern void SetName(Dog c, string n);
-
-        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_Age")]
-        public static extern void SetAge(Dog c, int? n);
-
-        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set_Weight")]
-        public static extern void SetWeight(Dog c, float? n);
+        private static Dictionary<int, int[]> tokenCache = new();
 
 
+        public static void GenerateReadTokens(IDataReader reader, Span<int> s)
+        {
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                var name = reader.GetName(i);
+                var type = reader.GetFieldType(i);
+                switch (StringHashing.NormalizedHash(name))
+                {
+
+                    case 742476188U:
+                        s[i] = type == typeof(int) ? 1 : 2;
+                        break;
+
+                    case 2369371622U:
+                        s[i] = type == typeof(string) ? 3 : 4;
+                        break;
+
+                    case 1352703673U:
+                        s[i] = type == typeof(float) ? 5 : 6;
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+        }
+
+        public static BenchmarkTest.Dog ReadOne(IDataReader reader, ReadOnlySpan<int> ss)
+        {
+            var d = new BenchmarkTest.Dog();
+            for (int j = 0; j < ss.Length; j++)
+            {
+                switch (ss[j])
+                {
+
+                    case 1:
+                        d.Age = DogAccessors.ReadToInt32Nullable(reader, j);
+                        break;
+                    case 2:
+                        d.Age = DogAccessors.ReadToInt32NullableConvert(reader, j);
+                        break;
+
+                    case 3:
+                        d.Name = DogAccessors.ReadToString(reader, j);
+                        break;
+                    case 4:
+                        d.Name = DogAccessors.ReadToStringConvert(reader, j);
+                        break;
+
+                    case 5:
+                        d.Weight = DogAccessors.ReadToFloatNullable(reader, j);
+                        break;
+                    case 6:
+                        d.Weight = DogAccessors.ReadToFloatNullableConvert(reader, j);
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+            return d;
+
+        }
+
+        public static IEnumerable<BenchmarkTest.Dog> Read(this IDataReader reader)
+        {
+            var state = new ReaderState();
+            state.Reader = reader;
+            var s = reader.FieldCount <= 64 ? MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(stackalloc int[64]), reader.FieldCount) :  state.GetTokens();
+            GenerateReadTokens(reader, s);
+            ReadOnlySpan<int> readOnlyTokens = s;
+            List<BenchmarkTest.Dog> results = new();
+            try
+            {
+                while (reader.Read())
+                {
+                    results.Add(ReadOne(reader, readOnlyTokens));
+                }
+                return results;
+            }
+            finally
+            { 
+                state.Dispose();
+            }
+            
+            
+        }
         public static void CreateParams(IDbCommand command, Dog o)
         {
             var p = command.CreateParameter();
@@ -128,6 +209,46 @@ namespace BenchmarkTest
             p.Direction = ParameterDirection.Input;
             p.Value = o.Weight;
             command.Parameters.Add(p);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string ReadToString(this IDataReader reader, int i)
+        {
+            return reader.GetString(i);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string ReadToStringConvert(this IDataReader reader, int i)
+        {
+            return reader.GetValue(i)?.ToString();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int? ReadToInt32NullableConvert(this IDataReader reader, int i)
+        {
+            if (reader.IsDBNull(i)) return null;
+            else return Convert.ToInt32(reader.GetValue(i));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int? ReadToInt32Nullable(this IDataReader reader, int i)
+        {
+            if (reader.IsDBNull(i)) return null;
+            else return reader.GetInt32(i);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float? ReadToFloatNullable(this IDataReader reader, int i)
+        {
+            if (reader.IsDBNull(i)) return null;
+            else return reader.GetFloat(i);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float? ReadToFloatNullableConvert(this IDataReader reader, int i)
+        {
+            if (reader.IsDBNull(i)) return null;
+            else return Convert.ToSingle(reader.GetValue(i));
         }
     }
 
