@@ -77,7 +77,7 @@ namespace SlowestEM.Generator
             var cList = new StringBuilder();
             foreach (var namedType in finder.AllClass(context))
             {
-                if (namedType.IsAbstract || namedType.IsGenericType)
+                if (namedType.IsAbstract || namedType.IsGenericType || namedType.IsStatic)
                     continue;
                 GenerateClassMapper(context, cList, namedType);
             }
