@@ -168,7 +168,7 @@ namespace BenchmarkTest
         {
             var state = new ReaderState();
             state.Reader = reader;
-            var s = reader.FieldCount <= 64 ? MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(stackalloc int[64]), reader.FieldCount) :  state.GetTokens();
+            var s = reader.FieldCount <= 64 ? MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(stackalloc int[reader.FieldCount]), reader.FieldCount) :  state.GetTokens();
             GenerateReadTokens(reader, s);
             ReadOnlySpan<int> readOnlyTokens = s;
             List<BenchmarkTest.Dog> results = new();
