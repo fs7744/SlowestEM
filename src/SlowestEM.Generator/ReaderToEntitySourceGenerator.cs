@@ -97,6 +97,7 @@ using System;
 using System.Data;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace SlowestEM
 {{
@@ -140,7 +141,7 @@ namespace SlowestEM
                     var y = ++i;
                     f.Append($@"
                     case {StringHashing.NormalizedHash(p.Name)}U:
-                        s.Add(type == typeof(string) ? {x} : {y}); 
+                        s[i] = type == typeof(string) ? {x} : {y}; 
                         break;
 ");
                     s.Append($@"
@@ -158,7 +159,7 @@ namespace SlowestEM
                     var y = ++i;
                     f.Append($@"
                     case {StringHashing.NormalizedHash(p.Name)}U:
-                        s.Add(type == typeof({p.Type.ToNoNullableDisplayString()}) ? {x} : {y}); 
+                        s[i] = type == typeof({p.Type.ToNoNullableDisplayString()}) ? {x} : {y}; 
                         break;
 ");
                     s.Append($@"
@@ -174,44 +175,55 @@ namespace SlowestEM
             }
 
             return $@"
-        {namedType.DeclaredAccessibility.ToDisplayString()} static void GenerateReadTokens({(namedType.DeclaredAccessibility == Accessibility.Public ? "this " : "")}IDataReader reader)
+        {namedType.DeclaredAccessibility.ToDisplayString()} static void GenerateReadTokens({(namedType.DeclaredAccessibility == Accessibility.Public ? "this " : "")}IDataReader reader, Span<int> s)
         {{
-            
+            for (int i = 0; i < reader.FieldCount; i++)
+            {{
+                var name = reader.GetName(i);
+                var type = reader.GetFieldType(i);
+                switch (EntitiesGenerator.NormalizedHash(name))
+                {{
+                    {f}
+                    default:
+                        break;
+                }}
+            }}
+        }}
+
+        {namedType.DeclaredAccessibility.ToDisplayString()} static {fullName} ReadOne({(namedType.DeclaredAccessibility == Accessibility.Public ? "this " : "")}IDataReader reader, ReadOnlySpan<int> ss)
+        {{
+            var d = new {fullName}();
+            for (int j = 0; j < ss.Length; j++)
+            {{
+                switch (ss[j])
+                {{
+                    {s}
+                    default:
+                        break;
+                }}
+            }}
+            return d;
         }}
 
         {namedType.DeclaredAccessibility.ToDisplayString()} static IEnumerable<{fullName}> Read({(namedType.DeclaredAccessibility == Accessibility.Public ? "this " : "")}IDataReader reader)
         {{
-            var h = reader.GetColumnHash();
-            if (!tokenCache.TryGetValue(h, out var ss))
+            var state = new ReaderState();
+            state.Reader = reader;
+            var s = reader.FieldCount <= 64 ? MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(stackalloc int[reader.FieldCount]), reader.FieldCount) :  state.GetTokens();
+            GenerateReadTokens(reader, s);
+            ReadOnlySpan<int> readOnlyTokens = s;
+            List<{fullName}> results = new();
+            try
             {{
-                var s = new List<int>(reader.FieldCount);
-                for (int i = 0; i < reader.FieldCount; i++)
+                while (reader.Read())
                 {{
-                    var name = reader.GetName(i);
-                    var type = reader.GetFieldType(i);
-                    switch (EntitiesGenerator.NormalizedHash(name))
-                    {{
-                        {f}
-                        default:
-                            break;
-                    }}
+                    results.Add(ReadOne(reader, readOnlyTokens));
                 }}
-                ss = s.ToArray();
-                tokenCache[h] = ss;
+                return results;
             }}
-            while (reader.Read())
-            {{
-                var d = new {fullName}();
-                for (int j = 0; j < ss.Length; j++)
-                {{
-                    switch (ss[j])
-                    {{
-                        {s}
-                        default:
-                            break;
-                    }}
-                }}
-                yield return d;
+            finally
+            {{ 
+                state.Dispose();
             }}
         }}
 "; 
