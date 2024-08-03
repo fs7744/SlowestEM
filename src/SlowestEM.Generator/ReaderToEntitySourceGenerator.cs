@@ -105,7 +105,6 @@ namespace SlowestEM
 {{
     public static partial class {namedType.Name}_Accessors
     {{
-        private static Dictionary<int, int[]> tokenCache = new ();
 
         {GenerateRead(ps, fullName, namedType)}
 
@@ -192,7 +191,7 @@ namespace SlowestEM
             }}
         }}
 
-        {namedType.DeclaredAccessibility.ToDisplayString()} static {fullName} ReadOne({(namedType.DeclaredAccessibility == Accessibility.Public ? "this " : "")}IDataReader reader, ReadOnlySpan<int> ss)
+        {namedType.DeclaredAccessibility.ToDisplayString()} static {fullName} ReadOne({(namedType.DeclaredAccessibility == Accessibility.Public ? "this " : "")}IDataReader reader, ref ReadOnlySpan<int> ss)
         {{
             var d = new {fullName}();
             for (int j = 0; j < ss.Length; j++)
@@ -219,7 +218,7 @@ namespace SlowestEM
             {{
                 while (reader.Read())
                 {{
-                    results.Add(ReadOne(reader, readOnlyTokens));
+                    results.Add(ReadOne(reader, ref readOnlyTokens));
                 }}
                 return results;
             }}
