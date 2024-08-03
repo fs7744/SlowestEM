@@ -44,6 +44,13 @@ namespace BenchmarkTest
         }
 
         [Benchmark]
+        public void Dapper()
+        {
+            var connection = new TestDbConnection() { RowCount = RowCount };
+            var dogs = connection.Query<Dog>("select * from dog").AsList();
+        }
+
+        [Benchmark, DapperAot]
         public void DapperAOT()
         {
             var connection = new TestDbConnection() { RowCount = RowCount };
