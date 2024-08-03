@@ -1,6 +1,8 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Order;
+using Chloe;
+using Chloe.Query.Internals;
 using Dapper;
 using SlowestEM;
 using System.Data;
@@ -10,7 +12,7 @@ namespace BenchmarkTest
     [MemoryDiagnoser, Orderer(summaryOrderPolicy: SummaryOrderPolicy.FastestToSlowest), GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory), CategoriesColumn]
     public class ObjectMappingTest
     {
-        [Params(1, 1000, 10000, 100000)]
+        [Params(1, 1000, 10000, 100000, 1000000)]
         public int RowCount { get; set; }
 
         [Benchmark(Baseline = true)]
@@ -42,14 +44,14 @@ namespace BenchmarkTest
         }
 
         [Benchmark]
-        public void DapperAOTMapping()
+        public void DapperAOT()
         {
             var connection = new TestDbConnection() { RowCount = RowCount };
             var dogs = connection.Query<Dog>("select * from dog").AsList();
         }
 
         [Benchmark]
-        public void SourceGeneratorMapping()
+        public void SourceGenerator()
         {
             var connection = new TestDbConnection() { RowCount = RowCount };
             List<Dog> dogs;
@@ -60,8 +62,24 @@ namespace BenchmarkTest
                 cmd.CommandText = "select ";
                 using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
                 {
-                    dogs = reader.ReadTo<Dog>().ToList();
+                    dogs = reader.ReadTo<Dog>().AsList();
                 }
+            }
+            finally
+            {
+                connection.Close();
+            }
+        }
+
+        [Benchmark]
+        public void Chloe()
+        {
+            var connection = new TestDbConnection() { RowCount = RowCount };
+            try
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                var dogs = new InternalSqlQuery<Dog>(cmd, "select").AsList();
             }
             finally
             {

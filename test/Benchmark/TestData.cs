@@ -296,7 +296,7 @@ namespace BenchmarkTest
 
         public override bool HasRows => throw new NotImplementedException();
 
-        public override bool IsClosed => throw new NotImplementedException();
+        public override bool IsClosed => true;
 
         public override int RecordsAffected => 0;
 
