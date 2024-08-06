@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Operations;
 using System.Diagnostics;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace SlowestEM.Generator2
 {
@@ -21,6 +22,18 @@ namespace SlowestEM.Generator2
             }
             return null;
         }
+
+        internal static string GetInterceptorFilePath(this SyntaxTree? tree, Compilation compilation)
+        {
+            if (tree is null) return "";
+            return compilation.Options.SourceReferenceResolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
+        }
+    }
+
+    public class TestData
+    {
+        public Location Location { get; set; }
+        public string Method { get; set; }
     }
 
     [Generator(LanguageNames.CSharp)]
@@ -35,11 +48,46 @@ namespace SlowestEM.Generator2
             context.RegisterImplementationSourceOutput(combined, Generate);
         }
 
-        private void Generate(SourceProductionContext ctx, (Compilation Left, ImmutableArray<object> Right) state)
+        private void Generate(SourceProductionContext ctx, (Compilation Left, ImmutableArray<TestData> Right) state)
         {
             try
             {
-                ctx.AddSource("package" + ".generated.cs", string.Join("", state.Right.Select(i => i.ToString())));
+                var s = string.Join("", state.Right.Select(i => 
+                {
+                    var loc = i.Location.GetLineSpan();
+                    var start = loc.StartLinePosition;
+                    return @$"[global::System.Runtime.CompilerServices.InterceptsLocationAttribute({SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(i.Location.SourceTree.GetInterceptorFilePath(state.Left)))},{start.Line + 1},{start.Character + 1 + 13})]
+{i.Method}";
+                }));
+                var ss = $@"
+namespace Test.AOT 
+{{
+    file static class GeneratedInterceptors
+    {{
+        {s}
+    }}
+}}
+
+
+namespace System.Runtime.CompilerServices
+{{
+    // this type is needed by the compiler to implement interceptors - it doesn't need to
+    // come from the runtime itself, though
+
+    [global::System.Diagnostics.Conditional(""DEBUG"")] // not needed post-build, so: evaporate
+    [global::System.AttributeUsage(global::System.AttributeTargets.Method, AllowMultiple = true)]
+    sealed file class InterceptsLocationAttribute : global::System.Attribute
+    {{
+        public InterceptsLocationAttribute(string path, int lineNumber, int columnNumber)
+        {{
+            _ = path;
+            _ = lineNumber;
+            _ = columnNumber;
+        }}
+    }}
+}}
+";
+                ctx.AddSource((state.Left.AssemblyName ?? "package") + ".generated.cs", ss);
             }
             catch (Exception ex)
             {
@@ -47,7 +95,7 @@ namespace SlowestEM.Generator2
             }
         }
 
-        private object TransformFunc(GeneratorSyntaxContext ctx, CancellationToken token)
+        private TestData TransformFunc(GeneratorSyntaxContext ctx, CancellationToken token)
         {
             try
             {
@@ -62,9 +110,24 @@ namespace SlowestEM.Generator2
                     return null;
                 }
                 
-                var s = op.Arguments == null ? "" : "// " + string.Join("\r\n//", op.Arguments.Select(i => i.Value is IConversionOperation c ? (c.Operand is IAnonymousObjectCreationOperation o ? string.Join(",", o.Initializers.Select(i => ((i as IAssignmentOperation).Target as IPropertyReferenceOperation).Property.Name)) : c.Operand.Type?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)) : i.Value.ToString()));
-                //var s = op.Arguments == null ? "" : "// " + string.Join("\r\n//", op.Arguments.Select(i => i.Value is IAnonymousObjectCreationOperation o ? " IAnonymousObjectCreationOperation: " + o.Type?.ToDisplayString() : i.Value.Type?.ToDisplayString()));
-                return s + "\r\n//" + t.ToDisplayString() ;
+                var callLocation = op.Syntax.GetLocation();
+                var s = op.Arguments.Select(i => i.Value as IConversionOperation).Where(i => i is not null)
+                    .Select(i => i.Operand as IAnonymousObjectCreationOperation)
+                    .Where(i => i is not null)
+                    .SelectMany(i => i.Initializers)
+                    .Select(i => i as IAssignmentOperation)
+                    .FirstOrDefault(i => i.Target.Type.ToDisplayString() == "string");
+                return new TestData { Location = callLocation, Method = @$"
+internal static {op.TargetMethod.ReturnType} {op.TargetMethod.Name}_test({string.Join("", op.TargetMethod.Parameters.Select(i => @$"{i.Type} {i.Name}"))})
+{{
+    {(s == null ? "return null;" : $@"
+    dynamic c = o;
+    return c.{(s.Target as IPropertyReferenceOperation).Property.Name};
+") }
+}}
+" };
+                //var s = op.Arguments == null ? "" : "// " + string.Join("\r\n//", op.Arguments.Select(i => i.Value is IConversionOperation c ? (c.Operand is IAnonymousObjectCreationOperation o ? string.Join(",", o.Initializers.Select(i => ((i as IAssignmentOperation).Target as IPropertyReferenceOperation).Property.Name)) : c.Operand.Type?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)) : i.Value.ToString()));
+                //return s + "\r\n//" + t.ToDisplayString() ;
             }
             catch (Exception ex)
             {
