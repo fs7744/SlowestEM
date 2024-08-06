@@ -1,4 +1,5 @@
-﻿using SlowestEM.Attributes;
+﻿using SlowestEM;
+using SlowestEM.Attributes;
 
 namespace UT.GeneratorUT
 {
@@ -22,6 +23,7 @@ namespace UT.GeneratorUT
         public void CallNoError()
         {
             var s = new { A = "s" };
+            var ss = DBExtensions.TestInterceptor<AEnum>(new { A = "sss", C= "ddd" });
         }
     }
 }

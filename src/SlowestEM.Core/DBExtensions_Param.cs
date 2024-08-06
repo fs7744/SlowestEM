@@ -60,5 +60,10 @@ namespace SlowestEM
             if (typeof(T) == typeof(int?)) return AsValue(Unsafe.As<T, int?>(ref value));
             return AsValue((object?)value);
         }
+
+        public static string TestInterceptor<T>(object o)
+        {
+            return o.GetType().ToString();
+        }
     }
 }
