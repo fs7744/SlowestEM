@@ -120,7 +120,7 @@ namespace System.Runtime.CompilerServices
             }
             catch (Exception ex)
             {
-                //ctx.ReportDiagnostic(Diagnostic.Create(DiagnosticsBase.UnknownError, null, ex.Message, ex.StackTrace));
+                Debug.Fail(ex.Message);
             }
         }
 
