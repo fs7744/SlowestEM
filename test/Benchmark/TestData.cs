@@ -327,7 +327,17 @@ namespace BenchmarkTest
 
         public override string GetDataTypeName(int ordinal)
         {
-            throw new NotImplementedException();
+            switch (ordinal)
+            {
+                case 0:
+                    return "Name";
+                case 1:
+                    return "Age";
+                case 2:
+                    return "Weight";
+                default:
+                    return null;
+            }
         }
 
         public override DateTime GetDateTime(int ordinal)
@@ -451,7 +461,10 @@ namespace BenchmarkTest
 
         public override int GetValues(object[] values)
         {
-            throw new NotImplementedException();
+            values[0] = "XX";
+            values[1] = 2;
+            values[2] = 3.3f;
+            return 3;
         }
 
         public override bool IsDBNull(int ordinal)

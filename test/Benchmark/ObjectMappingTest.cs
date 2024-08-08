@@ -9,7 +9,7 @@ using System.Data;
 
 namespace BenchmarkTest
 {
-    [MemoryDiagnoser, Orderer(summaryOrderPolicy: SummaryOrderPolicy.FastestToSlowest), GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory), CategoriesColumn]
+    [ShortRunJob, MemoryDiagnoser, Orderer(summaryOrderPolicy: SummaryOrderPolicy.FastestToSlowest), GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory), CategoriesColumn]
     public class ObjectMappingTest
     {
         [Params(1, 1000, 10000, 100000, 1000000)]
@@ -35,6 +35,27 @@ namespace BenchmarkTest
                         dog.Age = reader.GetInt32(1);
                         dog.Weight = reader.GetFloat(2);
                     }
+                }
+            }
+            finally
+            {
+                connection.Close();
+            }
+        }
+
+        [Benchmark]
+        public void DynamicRecord()
+        {
+            var connection = new TestDbConnection() { RowCount = RowCount };
+            List<dynamic> dogs;
+            try
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = "select ";
+                using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
+                {
+                    dogs = DynamicRecordFactory<dynamic>.Instance.Read(reader).AsList();
                 }
             }
             finally
