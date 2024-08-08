@@ -6,6 +6,7 @@ using Chloe.Query.Internals;
 using Dapper;
 using SlowestEM;
 using System.Data;
+using System.Dynamic;
 
 namespace BenchmarkTest
 {
@@ -34,6 +35,41 @@ namespace BenchmarkTest
                         dog.Name = reader.GetString(0);
                         dog.Age = reader.GetInt32(1);
                         dog.Weight = reader.GetFloat(2);
+                    }
+                }
+            }
+            finally
+            {
+                connection.Close();
+            }
+        }
+
+        [Benchmark]
+        public void DynamicExpandoObject()
+        {
+            var connection = new TestDbConnection() { RowCount = RowCount };
+            List<dynamic> dogs = new List<dynamic>();
+            try
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = "select ";
+                using (var reader = cmd.ExecuteReader(CommandBehavior.Default))
+                {
+                    var arr = new string[reader.FieldCount];
+                    for (int i = 0; i < arr.Length; i++)
+                    {
+                        arr[i] = reader.GetName(i);
+                    }
+
+                    while (reader.Read())
+                    {
+                        IDictionary<string, object> dog = new ExpandoObject();
+                        dogs.Add(dog);
+                        for (int i = 0; i < arr.Length; i++)
+                        {
+                            dog[arr[i]] = reader.GetValue(i);
+                        }
                     }
                 }
             }
@@ -76,6 +112,13 @@ namespace BenchmarkTest
         {
             var connection = new TestDbConnection() { RowCount = RowCount };
             var dogs = connection.Query<Dog>("select * from dog").AsList();
+        }
+
+        [Benchmark]
+        public void DapperDynamic()
+        {
+            var connection = new TestDbConnection() { RowCount = RowCount };
+            var dogs = connection.Query("select * from dog").AsList();
         }
 
         [Benchmark]
