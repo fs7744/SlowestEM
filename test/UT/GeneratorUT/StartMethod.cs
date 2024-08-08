@@ -22,8 +22,7 @@ namespace UT.GeneratorUT
         [Fact]
         public void CallNoError()
         {
-            var s = new { A = "s" };
-            var ss = DBExtensions.TestInterceptor<AEnum>(new { A = "sss", C= "ddd" });
+            Assert.Equal("sss", DBExtensions.TestInterceptor<AEnum>(new { A = "sss", C= "ddd" }));
         }
     }
 }
