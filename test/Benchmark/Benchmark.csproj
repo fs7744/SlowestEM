@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\SlowestEM.Core\SlowestEM.Core.csproj" />
     <ProjectReference Include="..\..\src\SlowestEM.Generator\SlowestEM.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
+    <ProjectReference Include="..\Test\Test.csproj" />
   </ItemGroup>
 
 	<Target Name="CleanSourceGeneratedFiles" BeforeTargets="BeforeBuild" DependsOnTargets="$(BeforeBuildDependsOn)">
