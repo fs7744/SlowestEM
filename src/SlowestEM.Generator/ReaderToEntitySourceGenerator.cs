@@ -141,7 +141,7 @@ namespace SlowestEM
                     var x = ++i;
                     var y = ++i;
                     f.Append($@"
-                    case {StringHashing.NormalizedHash(p.Name)}:
+                    case {StringHashing.HashOrdinalIgnoreCase(p.Name.AsSpan())}:
                         s[i] = type == typeof(string) ? {x} : {y}; 
                         break;
 ");
@@ -159,7 +159,7 @@ namespace SlowestEM
                     var x = ++i;
                     var y = ++i;
                     f.Append($@"
-                    case {StringHashing.NormalizedHash(p.Name)}:
+                    case {StringHashing.HashOrdinalIgnoreCase(p.Name.AsSpan())}:
                         s[i] = type == typeof({p.Type.ToNoNullableDisplayString()}) ? {x} : {y}; 
                         break;
 ");
@@ -701,20 +701,8 @@ namespace SlowestEM
             return AsValue((object?)value);
         }}
 
-        public static uint NormalizedHash(string value)
-        {{
-            uint hash = 0;
-            if (!string.IsNullOrEmpty(value))
-            {{   // borrowed from Roslyn's switch on string implementation
-                hash = 2166136261u;
-                foreach (char c in value)
-                {{
-                    if (c == '_' || char.IsWhiteSpace(c)) continue;
-                    hash = (char.ToLower(c) ^ hash) * 16777619;
-                }}
-            }}
-            return hash;
-        }}
+       [UnsafeAccessor(UnsafeAccessorKind.Method, Name = ""GetNonRandomizedHashCodeOrdinalIgnoreCase"")]
+        public static extern int NormalizedHash(this string c);
 
         [ModuleInitializer]
         internal static void Enable()
