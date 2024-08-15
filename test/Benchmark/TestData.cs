@@ -247,7 +247,7 @@ namespace BenchmarkTest
 
         public override object? ExecuteScalar()
         {
-            throw new NotImplementedException();
+            return ExecuteReader(CommandBehavior.Default).GetValue(0);
         }
 
         public override void Prepare()
