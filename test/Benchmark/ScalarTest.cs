@@ -3,6 +3,7 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Order;
 using Dapper;
 using SV.Db;
+using System.Data;
 
 namespace BenchmarkTest
 {
@@ -11,6 +12,21 @@ namespace BenchmarkTest
     {
         [Params(1)]
         public int RowCount { get; set; }
+
+        public IDataReader DataReader { get; set; } = new TestDbConnection() { RowCount = 1 }.CreateCommand().ExecuteReader();
+
+
+        [Benchmark(Baseline = true), BenchmarkCategory("Convert")]
+        public string DBUtilsAs()
+        {
+            return DBUtils.As<string>(DataReader.GetValue(0));
+        }
+
+        [Benchmark, BenchmarkCategory("Convert")]
+        public string ReadScalar()
+        {
+            return DataReader.ReadScalar<string>();
+        }
 
         [Benchmark(Baseline = true)]
         public string ExecuteScalar()
