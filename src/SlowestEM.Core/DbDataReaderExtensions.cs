@@ -4,6 +4,11 @@ using System.Runtime.CompilerServices;
 
 namespace SV.Db
 {
+    internal static class RecordFactoryCache<T>
+    {
+        public static IRecordFactory<T> Cache { get; set; }
+    }
+
     internal static class ScalarFactoryCache<T>
     {
         public static ScalarFactory<T> Cache { get; set; }
@@ -13,6 +18,8 @@ namespace SV.Db
     {
         static DbDataReaderExtensions()
         {
+            RecordFactoryCache<string>.Cache = new StringRecordFactory();
+
 
             ScalarFactoryCache<string>.Cache = new ScalarFactoryString();
             ScalarFactoryCache<int>.Cache = new ScalarFactoryInt();
@@ -39,10 +46,34 @@ namespace SV.Db
             ScalarFactoryCache<char?>.Cache = new ScalarFactoryCharNull();
         }
 
+        public static void RegisterRecordFactory<T>(RecordFactory<T> factory)
+        {
+            RecordFactoryCache<T>.Cache = factory;
+        }
+
+        public static T Read<T>(this IDataReader reader) 
+        {
+            var t = GetRecordFactory<T>();
+            return t.Read(reader);
+        }
+
+        public static IEnumerable<T> ReadEnumerable<T>(this IDataReader reader, bool useBuffer = true) 
+        {
+            var t = GetRecordFactory<T>();
+            return useBuffer
+                   ? t.ReadBuffed(reader)
+                   : t.ReadUnBuffed(reader);
+        }
+
         public static T ReadScalar<T>(this IDataReader reader)
         {
             var t = GetScalarFactory<T>();
             return t.Read(reader);
+        }
+
+        public static T ReadScalar<T>(this IDbCommand command)
+        {
+            return DBUtils.As<T>(command.ExecuteScalar());
         }
 
         public static IEnumerable<T> ReadScalarEnumerable<T>(this IDataReader reader, bool useBuffer = true)
@@ -51,6 +82,30 @@ namespace SV.Db
             return useBuffer
                     ? t.ReadBuffed(reader)
                     : t.ReadUnBuffed(reader);
+        }
+
+        [MethodImpl(DBUtils.Optimization)]
+        private static IRecordFactory<T> GetRecordFactory<T>()
+        {
+            var t = RecordFactoryCache<T>.Cache;
+            if (t == null)
+            {
+                var ty = typeof(T);
+                //if (ty.IsEnum)
+                //{
+                //    t = ScalarFactoryCache<T>.Cache = new ScalarFactoryEnum<T>();
+                //}
+                //else if (ty.IsGenericType && typeof(Nullable<>) == ty.GetGenericTypeDefinition() && Nullable.GetUnderlyingType(ty).IsEnum)
+                //{
+                //    t = ScalarFactoryCache<T>.Cache = (ScalarFactory<T>)Activator.CreateInstance(typeof(ScalarFactoryEnumNull<>).MakeGenericType(Nullable.GetUnderlyingType(ty)));
+                //}
+                //else
+                //{
+                //    t = ScalarFactoryCache<T>.Cache = new ScalarFactory<T>();
+                //}
+            }
+
+            return t;
         }
 
         [MethodImpl(DBUtils.Optimization)]
