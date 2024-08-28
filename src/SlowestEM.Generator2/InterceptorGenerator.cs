@@ -166,6 +166,7 @@ internal static {op.TargetMethod.ReturnType} {op.TargetMethod.Name}_test({string
 
         private bool FilterFunc(SyntaxNode node, CancellationToken token)
         {
+            
             if (node is InvocationExpressionSyntax ie && ie.ChildNodes().FirstOrDefault() is MemberAccessExpressionSyntax ma)
             {
                 return ma.Name.ToString().StartsWith("TestInterceptor");
